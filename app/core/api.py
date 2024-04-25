@@ -1,8 +1,6 @@
 import os
 
-from app.core.problem.createProblem import create_problem
-from fastapi import APIRouter, HTTPException, Body
-from pydantic import BaseModel
+from fastapi import HTTPException
 
 
 def util_api(api_key, model, system_prompt, user_prompt):
@@ -24,4 +22,8 @@ def util_api(api_key, model, system_prompt, user_prompt):
 
 
 def get_api_key():
-    return os.environ.get("OPENAI_API_KEY", "your_api_key_here")
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key is None:
+        raise ValueError("API key is not set")
+    return api_key
+
