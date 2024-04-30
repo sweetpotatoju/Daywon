@@ -1,7 +1,6 @@
 import httpx
 from fastapi import Depends, HTTPException
 from app.core.api import util_api, get_api_key
-
 import openai
 import webbrowser
 import urllib.request
