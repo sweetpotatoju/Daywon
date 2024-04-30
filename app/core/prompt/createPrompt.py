@@ -23,7 +23,6 @@ async def create_prompt(api_key):
             return f"에러: {response.status_code}, {response.text}"
 
 
-
 async def generate_images(prompt_p, api_key_p, clips_info_p):
     client = openai.OpenAI(api_key=api_key_p)
 
@@ -45,6 +44,7 @@ async def generate_images(prompt_p, api_key_p, clips_info_p):
         urllib.request.urlretrieve(url, img_dest)
         clips_info_p.append((img_dest, prompt))
 
+
 # 2 문장씩 분리
 def text_split(text):
     # 문장을 온점(.) 기준으로 나누기
@@ -61,6 +61,7 @@ def text_split(text):
             sentence_pairs.append(sentences[i])
     return sentence_pairs
 
+
 def create_image_file_name():
     """저장할 이미지 파일의 이름을 중복되지 않게 생성"""
     count = 1
@@ -69,3 +70,8 @@ def create_image_file_name():
         if not os.path.exists(image_path):
             return image_path
         count += 1
+
+
+def ensure_folders_exists(self):
+    # ai_image 폴더가 있는지 확인하고 없다면 생성
+    os.makedirs('./ai_image', exist_ok=True)
