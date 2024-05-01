@@ -4,7 +4,7 @@ from app.core.api import util_api, get_api_key
 import openai
 import webbrowser
 import urllib.request
-import os
+
 
 
 async def create_prompt():
@@ -23,30 +23,7 @@ async def create_prompt():
             return f"에러: {response.status_code}, {response.text}"
 
 
-# async def generate_images(prompt_p, api_key_p, clips_info_p):
-#     client = openai.OpenAI(api_key=api_key_p)
-#
-#     # 각 프롬프트에 대해 이미지 생성 요청
-#     for i, prompt in enumerate(prompt_p):
-#         response = client.images.generate(
-#             model="dall-e-3",
-#             prompt=prompt,
-#             size="1024x1792",
-#             quality="standard"
-#         )
-#         # 생성된 이미지 url 열기
-#         url = response.data[0].url
-#         webbrowser.open(url)
-#
-#         # 생성된 이미지 저장
-#         img_dest = create_image_file_name()
-#
-#         urllib.request.urlretrieve(url, img_dest)
-#         clips_info_p.append((img_dest, prompt))
-
-
 # 2 문장씩 분리
-# def text_split(text):
 def split_text(text):
     # 문장을 온점(.) 기준으로 나누기
     sentences = text.split('.')
@@ -61,21 +38,3 @@ def split_text(text):
         else:
             sentence_pairs.append(sentences[i])
     return sentence_pairs
-
-
-# def create_image_file_name():
-#     """저장할 이미지 파일의 이름을 중복되지 않게 생성"""
-#     # 폴더 확인 및 생성
-#     os.makedirs('./ai_image', exist_ok=True)
-#
-#     count = 1
-#     while True:
-#         image_path = f"./ai_image/ai_image_result_{count}.jpg"
-#         if not os.path.exists(image_path):
-#             return image_path
-#         count += 1
-
-
-# def ensure_folders_exists():
-#     # ai_image 폴더가 있는지 확인하고 없다면 생성
-#     os.makedirs('./ai_image', exist_ok=True)
