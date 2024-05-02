@@ -7,11 +7,12 @@ import webbrowser
 import urllib.request
 
 
-async def create_prompt():
+async def create_prompt(finance_category):
     api_key = get_api_key()
     model = 'gpt-4'
-    system_prompt = f"금융 상품을 고르는 상황 예시를 들어서 어려운 금융 지식을 각 문장의 글자 수가 50자 이내인 총 6문장으로 요약하여 고등학생에게 이야기를 들려주듯이 알려줍니다."
-    user_prompt = "투자, 세금, 저축 중 하나만 골라 주제를 정하고, 그 주제에 관한 구체적 상품 예시 하나를 들고 설명과 장단점 알려줘."
+    system_prompt = (f" {get_finance_category(finance_category)} 금융 상품을 고르는 상황 예시를 들어서 어려운 금융 지식을 각 문장의 글자 수가 50자 이내인 총 6문장으로 요약하여 "
+                     f"고등학생에게 이야기를 들려주듯이 알려줍니다.")
+    user_prompt = f"{get_finance_category(finance_category)}로 주제를 정하고, 그 주제에 관한 구체적 상품 예시 하나를 들고 설명과 장단점 알려줘."
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
 
     async with httpx.AsyncClient() as client:
