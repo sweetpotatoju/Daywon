@@ -1,9 +1,43 @@
 import textwrap
 import os
+from pathlib import Path
+from openai import OpenAI
 from gtts import gTTS
+import random
 from moviepy.editor import ImageClip, concatenate_videoclips, CompositeVideoClip, TextClip, AudioFileClip
 # https://www.imagemagick.org/script/download.php#windows에서 imagemagick(dynamic ver) 다운
 # -> (+) 레거시 추가 체크 후, 설치 (pip 설치 불가능)
+
+
+def get_audio(input_text="주식에 대해 알아볼까요?"):
+    client = OpenAI()
+    # 사용 가능한 목소리 목록
+    voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+
+    # 목소리를 랜덤으로 선택
+    selected_voice = random.choice(voices)
+
+    speech_file_path = Path(__file__).parent / "audio/gptTTS.mp3"
+    # 파일 저장 경로에 해당하는 디렉토리가 없는 경우 생성
+    speech_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        # TTS API를 사용하여 음성 생성
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice=selected_voice,
+            input=input_text
+        )
+        # 응답에서 오디오 데이터를 파일로 저장
+        response.stream_to_file(speech_file_path)
+        return "audio : success"
+    except Exception as e:
+        # 오류 발생 시 처리 로직
+        return f"Failed to save audio: {str(e)}"
+
+    # 응답에서 오디오 데이터를 파일로 저장
+    # with open("audio/gptTTS.mp3", "wb") as audio_file:
+    #     audio_file.write(response['audio'])
 
 
 class VideoCreator:
@@ -40,10 +74,18 @@ class VideoCreator:
             # 긴 텍스트를 적절한 길이로 줄바꿈
             wrapped_text = textwrap.fill(text, width=self.wrap_width)
 
-            # TTS를 사용하여 오디오 파일 생성
-            tts = gTTS(text=wrapped_text, lang='ko')
+            # get_audio 함수를 사용하여 오디오 파일 생성 및 경로 반환
+            audio_response = get_audio(wrapped_text)
+            if 'audio : success' not in audio_response:
+                print(audio_response)  # 오디오 생성 실패 시 메시지 출력
+                continue  # 다음 클립으로 넘어감
+
             audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
-            tts.save(audio_filename)
+
+            # TTS를 사용하여 오디오 파일 생성
+            # tts = gTTS(text=wrapped_text, lang='ko')
+            # audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
+            # tts.save(audio_filename)
 
             # 오디오 클립 생성 및 지속시간 확인
             audio_clip = AudioFileClip(audio_filename)
