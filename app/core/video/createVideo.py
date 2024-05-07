@@ -5,6 +5,8 @@ from openai import OpenAI
 from gtts import gTTS
 import random
 from moviepy.editor import ImageClip, concatenate_videoclips, CompositeVideoClip, TextClip, AudioFileClip
+
+
 # https://www.imagemagick.org/script/download.php#windows에서 imagemagick(dynamic ver) 다운
 # -> (+) 레거시 추가 체크 후, 설치 (pip 설치 불가능)
 
@@ -30,7 +32,7 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
         )
         # 응답에서 오디오 데이터를 파일로 저장
         response.stream_to_file(speech_file_path)
-        return "audio : success"
+        return speech_file_path
     except Exception as e:
         # 오류 발생 시 처리 로직
         return f"Failed to save audio: {str(e)}"
@@ -49,10 +51,10 @@ class VideoCreator:
         self.color = 'black'
         self.wrap_width = 20
         self.padding = 20
-        self.audio_folder = './audio'
-        self.video_folder = './completed_video'
-        self.ensure_folders_exists()
-        self.output_path = self.create_video_file_name()
+        self.audio_folder = 'audio'
+        self.video_folder = 'completed_video'
+        # self.ensure_folders_exists()
+        self.video_path = self.create_video_file_name()
 
     def ensure_folders_exists(self):
         # 오디오 폴더와 비디오 폴더가 있는지 확인하고 없다면 생성
@@ -61,9 +63,13 @@ class VideoCreator:
 
     def create_video_file_name(self):
         """저장할 비디오 파일의 이름을 중복되지 않게 생성"""
+        video_path = Path(__file__).parent / f"{self.video_folder}"
+        if os.path.exists(video_path):
+            print("비디오 경로 있음 : ", video_path)
+        video_path.mkdir(parents=True, exist_ok=True)
         count = 1
         while True:
-            video_path = f"./{self.video_folder}/{self.video_name}_{count}.mp4"
+            video_path = Path(__file__).parent / f"{self.video_folder}/{self.video_name}_{count}.mp4"
             if not os.path.exists(video_path):
                 return video_path
             count += 1
@@ -75,12 +81,10 @@ class VideoCreator:
             wrapped_text = textwrap.fill(text, width=self.wrap_width)
 
             # get_audio 함수를 사용하여 오디오 파일 생성 및 경로 반환
-            audio_response = get_audio(wrapped_text)
-            if 'audio : success' not in audio_response:
-                print(audio_response)  # 오디오 생성 실패 시 메시지 출력
-                continue  # 다음 클립으로 넘어감
+            audio_path = get_audio(wrapped_text)
 
-            audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
+
+            #audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
 
             # TTS를 사용하여 오디오 파일 생성
             # tts = gTTS(text=wrapped_text, lang='ko')
@@ -88,7 +92,7 @@ class VideoCreator:
             # tts.save(audio_filename)
 
             # 오디오 클립 생성 및 지속시간 확인
-            audio_clip = AudioFileClip(audio_filename)
+            audio_clip = AudioFileClip(audio_path)
             duration = audio_clip.duration
 
             # 이미지 클립과 자막 생성
@@ -106,4 +110,4 @@ class VideoCreator:
         final_clip = concatenate_videoclips(clips, method="compose")
 
         # 최종 비디오 파일 생성
-        final_clip.write_videofile(self.output_path, fps=30, codec='libx264', audio_codec='aac')
+        final_clip.write_videofile(self.video_path, fps=30, codec='libx264', audio_codec='aac')
