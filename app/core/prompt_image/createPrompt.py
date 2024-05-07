@@ -21,7 +21,7 @@ async def call_api(api_url, headers, data):
 async def create_prompt(finance_category):
     api_key = get_api_key()
     model = 'gpt-4'
-    system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 약 300자로 요약하여 고등학생에게 이야기를 들려주듯이 쉽게 알려줍니다."
+    system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 요약하여 고등학생에게 이야기를 들려주듯이 쉽게 알려줍니다."
     user_prompt = f"{get_finance_category(finance_category)}를 주제로 정하고, 주제의 금융 상품 중 하나에 대한 설명과 장단점 알려줘."
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
