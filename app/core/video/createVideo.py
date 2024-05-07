@@ -27,7 +27,7 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
 
     count = 1
     while True:
-        speech_file_path = Path(__file__).parent / f"audio/audio_result_{count}.jpg"
+        speech_file_path = Path(__file__).parent / f"audio/audio_result_{count}.mp3"
         # 파일 저장 경로에 해당하는 디렉토리가 없는 경우 생성
         if not os.path.exists(speech_file_path):
             break
@@ -42,7 +42,8 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
         )
         # 응답에서 오디오 데이터를 파일로 저장
         response.stream_to_file(speech_file_path)
-        return speech_file_path
+        speech_file_path_str = str(speech_file_path)
+        return speech_file_path_str
     except Exception as e:
         # 오류 발생 시 처리 로직
         return f"Failed to save audio: {str(e)}"
@@ -80,8 +81,9 @@ class VideoCreator:
         count = 1
         while True:
             video_path = Path(__file__).parent / f"{self.video_folder}/{self.video_name}_{count}.mp4"
+            video_path_str = str(video_path)
             if not os.path.exists(video_path):
-                return video_path
+                return video_path_str
             count += 1
 
     def create_video(self):
@@ -92,7 +94,7 @@ class VideoCreator:
 
             # get_audio 함수를 사용하여 오디오 파일 생성 및 경로 반환
             audio_path = get_audio(wrapped_text)
-
+            audio_path_str = str(audio_path)
             # audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
 
             # TTS를 사용하여 오디오 파일 생성
@@ -101,7 +103,7 @@ class VideoCreator:
             # tts.save(audio_filename)
 
             # 오디오 클립 생성 및 지속시간 확인
-            audio_clip = AudioFileClip(audio_path)
+            audio_clip = AudioFileClip(audio_path_str)
             duration = audio_clip.duration
 
             # 이미지 클립과 자막 생성

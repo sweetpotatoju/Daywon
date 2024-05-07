@@ -44,7 +44,8 @@ def create_image_file_name():
     count = 1
     while True:
         image_path = Path(__file__).parent / f"ai_image/ai_image_result_{count}.jpg"
+        image_path_str = str(image_path)
         # 파일 저장 경로에 해당하는 디렉토리가 없는 경우 생성
         if not os.path.exists(image_path):
-            return image_path
+            return image_path_str
         count += 1
