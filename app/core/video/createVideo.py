@@ -19,9 +19,19 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
     # 목소리를 랜덤으로 선택
     selected_voice = random.choice(voices)
 
-    speech_file_path = Path(__file__).parent / "audio/gptTTS.mp3"
-    # 파일 저장 경로에 해당하는 디렉토리가 없는 경우 생성
-    speech_file_path.parent.mkdir(parents=True, exist_ok=True)
+    speech_file_path = Path(__file__).parent / "audio"
+    if os.path.exists(speech_file_path):
+        print("오디오 파일 있음 : ", speech_file_path)
+    # 파일 없는 경우 생성
+    speech_file_path.mkdir(parents=True, exist_ok=True)
+
+    count = 1
+    while True:
+        speech_file_path = Path(__file__).parent / f"audio/audio_result_{count}.jpg"
+        # 파일 저장 경로에 해당하는 디렉토리가 없는 경우 생성
+        if not os.path.exists(speech_file_path):
+            break
+        count += 1
 
     try:
         # TTS API를 사용하여 음성 생성
@@ -83,8 +93,7 @@ class VideoCreator:
             # get_audio 함수를 사용하여 오디오 파일 생성 및 경로 반환
             audio_path = get_audio(wrapped_text)
 
-
-            #audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
+            # audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
 
             # TTS를 사용하여 오디오 파일 생성
             # tts = gTTS(text=wrapped_text, lang='ko')
