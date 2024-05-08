@@ -97,6 +97,29 @@ def create_question(db: Session, question_data):
     return question
 
 
+def update_question(db: Session, q_id: int, update_data):
+    question = db.query(Question).filter(Question.q_id == q_id).first()
+    if question:
+        if 'answer_option' in update_data:
+            question.answer_option = update_data['answer_option']
+        if 'question' in update_data:
+            question.question = update_data['question']
+        if 'option_1' in update_data:
+            question.option_1 = update_data['option_1']
+        if 'option_2' in update_data:
+            question.option_2 = update_data['option_2']
+        if 'option_3' in update_data:
+            question.option_3 = update_data['option_3']
+        if 'plus_point' in update_data:
+            question.plus_point = update_data['plus_point']
+        if 'minus_point' in update_data:
+            question.minus_point = update_data['minus_point']
+
+        db.commit()
+        return question
+    return None
+
+
 # comment
 def create_comment(db: Session, comment_data):
     comment = Comment(
