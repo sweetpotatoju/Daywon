@@ -7,13 +7,12 @@ class User(Base):
     __tablename__ = "users"
     user_id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    password = Column(String, index=True)
     nickname = Column(String, index=True)
+    hashed_password = Column(String)
     e_mail = Column(String, unique=True, index=True)
     level = Column(String, index=True)
     user_point = Column(String, index=True)
 
-    # hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
 
     items = relationship("Item", back_populates="owner")
