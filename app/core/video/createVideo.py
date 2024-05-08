@@ -2,7 +2,6 @@ import textwrap
 import os
 from pathlib import Path
 from openai import OpenAI
-from gtts import gTTS
 import random
 from moviepy.editor import ImageClip, concatenate_videoclips, CompositeVideoClip, TextClip, AudioFileClip
 

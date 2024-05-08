@@ -1,12 +1,6 @@
 import httpx
 import random
-
-import requests
-from fastapi import Depends, HTTPException
 from app.core.api import util_api, get_api_key
-import openai
-import webbrowser
-import urllib.request
 
 
 async def call_api(api_url, headers, data):

@@ -1,5 +1,4 @@
 import httpx
-from fastapi import Depends, HTTPException
 from app.core.api import util_api, get_api_key  # 앞서 정의한 함수를 임포트
 
 
