@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import httpx
 from fastapi import Depends, HTTPException
 from app.core.api import util_api, get_api_key
@@ -33,11 +35,17 @@ async def generate_images(prompt, clips_info):
 def create_image_file_name():
     """저장할 이미지 파일의 이름을 중복되지 않게 생성"""
     # 폴더 확인 및 생성
-    os.makedirs('./ai_image', exist_ok=True)
+    #os.makedirs('./ai_image', exist_ok=True)
+    image_path = Path(__file__).parent / "ai_image"
+    if os.path.exists(image_path):
+        print("이미지 경로 있음: ", image_path)
+    image_path.mkdir(parents=True, exist_ok=True)
 
     count = 1
     while True:
-        image_path = f"./ai_image/ai_image_result_{count}.jpg"
+        image_path = Path(__file__).parent / f"ai_image/ai_image_result_{count}.jpg"
+        image_path_str = str(image_path)
+        # 파일 저장 경로에 해당하는 디렉토리가 없는 경우 생성
         if not os.path.exists(image_path):
-            return image_path
+            return image_path_str
         count += 1
