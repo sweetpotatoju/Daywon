@@ -33,7 +33,7 @@ async def create_prompt(finance_category):
         return "Invalid level"
 
     # system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 요약하여 고등학생에게 이야기를 들려주듯이 쉽게 알려줍니다."
-    user_prompt = f"{get_finance_category(finance_category)}를 주제로 정하고, 주제의 금융 상품 중 하나에 대한 개념 설명과 장점과 단점을 알려줘."
+    user_prompt = f"{get_finance_category(finance_category)}를 주제로 정하고, 주제의 금융 상품 중 하나에 대한 개념 설명을 알려줘."
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
 
