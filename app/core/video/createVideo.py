@@ -47,9 +47,6 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
         # 오류 발생 시 처리 로직
         return f"Failed to save audio: {str(e)}"
 
-    # 응답에서 오디오 데이터를 파일로 저장
-    # with open("audio/gptTTS.mp3", "wb") as audio_file:
-    #     audio_file.write(response['audio'])
 
 
 class VideoCreator:
@@ -87,6 +84,7 @@ class VideoCreator:
 
     def create_video(self):
         clips = []
+        used_files = []  # 사용된 파일 경로를 저장할 리스트
         for path, text in self.clips_info:
             # 긴 텍스트를 적절한 길이로 줄바꿈
             wrapped_text = textwrap.fill(text, width=self.wrap_width)
@@ -94,12 +92,7 @@ class VideoCreator:
             # get_audio 함수를 사용하여 오디오 파일 생성 및 경로 반환
             audio_path = get_audio(wrapped_text)
             audio_path_str = str(audio_path)
-            # audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
 
-            # TTS를 사용하여 오디오 파일 생성
-            # tts = gTTS(text=wrapped_text, lang='ko')
-            # audio_filename = f'{self.audio_folder}/{os.path.basename(path).split(".")[0]}.mp3'
-            # tts.save(audio_filename)
 
             # 오디오 클립 생성 및 지속시간 확인
             audio_clip = AudioFileClip(audio_path_str)
@@ -116,8 +109,18 @@ class VideoCreator:
             video = CompositeVideoClip([clip, txt_clip]).set_audio(audio_clip)
             clips.append(video)
 
+            # 사용된 파일 경로 추가
+            used_files.append(path)  # 이미지 파일 경로 추가
+            used_files.append(audio_path)  # 오디오 파일 경로 추가
+
         # 모든 클립 연결
         final_clip = concatenate_videoclips(clips, method="compose")
 
         # 최종 비디오 파일 생성
         final_clip.write_videofile(self.video_path, fps=30, codec='libx264', audio_codec='aac')
+
+        # 사용된 파일 삭제
+        for file_path in used_files:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                print(f"Deleted {file_path}")
