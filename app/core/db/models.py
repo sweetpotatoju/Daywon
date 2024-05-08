@@ -80,6 +80,7 @@ class History(Base):
     T_F = Column(Boolean, index=True)
 
 
+# users의 point를 내림차순으로 만들고 ranking을 매김
 class Ranking(Base):
     __tablename__ = "ranking"
     r_id = Column(Integer, primary_key=True, index=True)
