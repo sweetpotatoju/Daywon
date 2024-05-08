@@ -1,15 +1,19 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-
 from app.core.db.base import Base
 
 
 class User(Base):
     __tablename__ = "users"
+    user_id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    password = Column(String, index=True)
+    nickname = Column(String, index=True)
+    e_mail = Column(String, unique=True, index=True)
+    level = Column(String, index=True)
+    user_point = Column(String, index=True)
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+    #hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
 
     items = relationship("Item", back_populates="owner")
@@ -21,7 +25,6 @@ class Item(Base):
     title = Column(String, index=True)
     description = Column(String, index=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
-
     owner = relationship("User", back_populates="items")
 
 
@@ -35,4 +38,49 @@ class Scripts(Base):
     content_3 = Column(String, index=True)
 
 
+class Shortform(Base):
+    __tablename__ = "shortform"
+    form_id = Column(Integer, primary_key=True, index=True)
+    form_url = Column(String, index=True)
+    scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
 
+
+class Question(Base):
+    __tablename__ = "question"
+    q_id = Column(Integer, primary_key=True, index=True)
+    scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
+    answer_option = Column(Integer, index=True)
+    question = Column(Integer, index=True)
+    option_1 = Column(String, index=True)
+    option_2 = Column(String, index=True)
+    option_3 = Column(String, index=True)
+    plus_point = Column(String, index=True)
+    minus_point = Column(String, index=True)
+
+
+class Comment(Base):
+    __table__ = "comment"
+    q_id = Column(Integer, ForeignKey("question.q_id"))
+    comment_1 = Column(String, index=True)
+    comment_2 = Column(String, index=True)
+    comment_3 = Column(String, index=True)
+
+
+class Admin(Base):
+    __table__ = "admin"
+    admin_id = Column(Integer, primary_key=True, index=True)
+    password = Column(String, index=True)
+
+
+class History(Base):
+    __table__ = "history"
+    h_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    scripts_id = Column(String, ForeignKey("scripts.scripts_id"))
+    T_F = Column(Boolean, index=True)
+
+class Ranking(Base):
+    __table__ = "ranking"
+    r_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    user_point = Column(String, ForeignKey("users.user_point"))
