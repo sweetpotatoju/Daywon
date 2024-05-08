@@ -13,7 +13,7 @@ class User(Base):
     level = Column(String, index=True)
     user_point = Column(String, index=True)
 
-    #hashed_password = Column(String)
+    # hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
 
     items = relationship("Item", back_populates="owner")
@@ -59,7 +59,7 @@ class Question(Base):
 
 
 class Comment(Base):
-    __table__ = "comment"
+    __tablename__ = "comment"
     q_id = Column(Integer, ForeignKey("question.q_id"))
     comment_1 = Column(String, index=True)
     comment_2 = Column(String, index=True)
@@ -67,20 +67,21 @@ class Comment(Base):
 
 
 class Admin(Base):
-    __table__ = "admin"
+    __tablename__ = "admin"
     admin_id = Column(Integer, primary_key=True, index=True)
-    password = Column(String, index=True)
+    password = Column(String)
 
 
 class History(Base):
-    __table__ = "history"
+    __tablename__ = "history"
     h_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
-    scripts_id = Column(String, ForeignKey("scripts.scripts_id"))
+    scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
     T_F = Column(Boolean, index=True)
 
+
 class Ranking(Base):
-    __table__ = "ranking"
+    __tablename__ = "ranking"
     r_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
     user_point = Column(String, ForeignKey("users.user_point"))
