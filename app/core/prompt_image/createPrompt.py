@@ -10,7 +10,7 @@ import urllib.request
 
 
 async def call_api(api_url, headers, data):
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(api_url, headers=headers, json=data)
         if response.status_code == 200:
             return response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
@@ -47,7 +47,7 @@ async def create_prompt(finance_category):
 async def create_video_prompt(conceptual_prompt):
     api_key = get_api_key()
     model = 'gpt-4'
-    system_prompt = f"각 문장의 글자 수가 80자 이내인 총 6문장으로 설명하고, 어린 아이에게 이야기하는 느낌으로 말한다. 온점은 오로지 문장이 끝났을 때만 사용합니다."
+    system_prompt = f"각 문장의 글자 수가 80자 이내인 총 6문장으로 설명하고, 어린 아이에게 이야기하는 느낌으로 말한다. 온점은 오로지 문장이 끝났을 때만 사용합니다. 한글로만 작성해주세요."
     user_prompt = f"{conceptual_prompt}에 대한 구체적인 실생활 예시를 들고 알아 듣기 쉽게 설명해줘"
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
