@@ -17,17 +17,6 @@ class User(Base):
 
     histories = relationship("History", back_populates="users")
     rankings = relationship("Ranking", back_populates="users")
-    items = relationship("Item", back_populates="owner")
-
-
-class Item(Base):
-    __tablename__ = "items"
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    description = Column(String, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
-    owner = relationship("User", back_populates="items")
-
 
 
 
@@ -44,6 +33,7 @@ class Scripts(Base):
     questions = relationship("Question", back_populates="scripts")
     shortform = relationship("Shortform", back_populates="scripts")
     admins = relationship("Admin", back_populates="scripts")
+
 
 class Shortform(Base):
     __tablename__ = "shortform"
@@ -69,15 +59,14 @@ class Question(Base):
     # comments = relationship("Comment", back_populates="questions")
 
 
-
-# class Comment(Base):
-#     __tablename__ = "comment"
-#     q_id = Column(Integer, ForeignKey("question.q_id"))
-#     comment_1 = Column(String)
-#     comment_2 = Column(String)
-#     comment_3 = Column(String)
-#     questions = relationship("Question", back_populates="comments")
-
+class Comment(Base):
+    __tablename__ = "comment"
+    c_id = Column(Integer, primary_key=True, index=True)
+    q_id = Column(Integer, ForeignKey("question.q_id"))
+    comment_1 = Column(String)
+    comment_2 = Column(String)
+    comment_3 = Column(String)
+    questions = relationship("Question", back_populates="comments")
 
 
 class Admin(Base):
@@ -85,7 +74,6 @@ class Admin(Base):
     admin_id = Column(Integer, primary_key=True, index=True)
     password = Column(String)
     scripts = relationship("Scripts", back_populates="admins")
-
 
 
 class History(Base):
@@ -99,13 +87,11 @@ class History(Base):
     scripts = relationship("Scripts", back_populates="histories")
 
 
-
 # users의 point를 내림차순으로 만들고 ranking을 매김
 class Ranking(Base):
     __tablename__ = "ranking"
     r_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id"))
-    user_point = Column(String, ForeignKey("users.user_point"))
+    user_point = Column(String, index=True)
 
     users = relationship("User", back_populates="rankings")
-

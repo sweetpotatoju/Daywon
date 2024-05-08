@@ -1,42 +1,41 @@
 from sqlalchemy.orm import Session
 from app.core.db import models, schemas
-from app.core.db.models import Scripts, Question, Shortform, Comment, Admin, History, Ranking
+from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking
 
 
 def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    # 특정 사용자를 ID로 조회
+    return db.query(models.User).filter(models.User.user_id == user_id).first()
 
 
-def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
-
-
-def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.User).offset(skip).limit(limit).all()
-
-
-def create_user(db: Session, user: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
-    db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
-    db.add(db_user)
+def create_user(db: Session, user):
+    # 새 사용자를 생성
+    db.add(user)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(user)
+    return user
 
 
-def get_items(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Item).offset(skip).limit(limit).all()
-
-
-def create_user_item(db: Session, item: schemas.ItemCreate, user_id: int):
-    db_item = models.Item(**item.dict(), owner_id=user_id)
-    db.add(db_item)
+def update_user(db: Session, user_id: int, update_data):
+    # 사용자 정보 갱신
+    db.query(models.User).filter(models.User.user_id == user_id).update(update_data)
     db.commit()
-    db.refresh(db_item)
-    return db_item
 
 
-# Scripts 스크립트
+def delete_user(db: Session, user_id: int):
+    # 사용자 삭제
+    user = db.query(models.User).get(user_id)
+    if user:
+        db.delete(user)
+        db.commit()
+
+
+# Scripts 모델을 위한 CRUD 함수들
+def get_script(db: Session, scripts_id: int):
+    # 특정 스크립트를 ID로 조회
+    return db.query(Scripts).filter(Scripts.scripts_id == scripts_id).first()
+
+
 def create_script(db: Session, script_data):
     new_script = Scripts(
         level=script_data['level'],
