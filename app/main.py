@@ -1,53 +1,70 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.db import models
+from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
+from app.core.db.crud import get_user_by_email
+from app.core.db.schemas import UserCreate, UserBase, Login
+from passlib.context import CryptContext
 
+# DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
 
 
-# # Dependency
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
+# Dependency(DB 접근 함수)
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-#
-# @app.post("/users/", response_model=schemas.User)
-# def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-#     db_user = crud.get_user_by_email(db, email=user.email)
-#     if db_user:
-#         raise HTTPException(status_code=400, detail="Email already registered")
-#     return crud.create_user(db=db, user=user)
-#
-#
-# @app.get("/users/", response_model=list[schemas.User])
-# def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     users = crud.get_users(db, skip=skip, limit=limit)
-#     return users
-#
-#
-# @app.get("/users/{user_id}", response_model=schemas.User)
-# def read_user(user_id: int, db: Session = Depends(get_db)):
-#     db_user = crud.get_user(db, user_id=user_id)
-#     if db_user is None:
-#         raise HTTPException(status_code=404, detail="User not found")
-#     return db_user
-#
-#
-# @app.post("/users/{user_id}/items/", response_model=schemas.Item)
-# def create_item_for_user(
-#     user_id: int, item: schemas.ItemCreate, db: Session = Depends(get_db)
-# ):
-#     return crud.create_user_item(db=db, item=item, user_id=user_id)
-#
-#
-# @app.get("/items/", response_model=list[schemas.Item])
-# def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     items = crud.get_items(db, skip=skip, limit=limit)
-#     return items
+
+# 유저 생성
+# 프론트앤드에서 오류가 낫을때, 필드의 값을 대채워달라는 메시지 표시(422 Unprocessable Entity 응답일때)
+@app.post("/users/", response_model=UserCreate)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    if crud.get_user_by_email(db, e_mail=user.e_mail) or crud.get_user_by_nickname(db, nickname=user.nickname):
+        raise HTTPException(status_code=400, detail="Email or nickname already registered")
+    return crud.create_user(db=db, user_create=user)
+
+
+@app.get("/users/check_email/")
+def check_email(email: str, db: Session = Depends(get_db)):
+    if crud.get_user_by_email(db, email=email):
+        return {"is_available": False}
+    return {"is_available": True}
+
+
+@app.get("/users/check_nickname/")
+def check_nickname(nickname: str, db: Session = Depends(get_db)):
+    if crud.get_user_by_nickname(db, nickname=nickname):
+        return {"is_available": False}
+    return {"is_available": True}
+
+
+# 사용자 정보를 검색하는 엔드포인트
+@app.get("/users/{e_mail}", response_model=schemas.UserBase)
+def read_user_by_email(email: str, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_email(db, e_mail=email)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+
+@app.post("/login/", response_model=UserBase)
+def login(credentials: Login, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, e_mail=credentials.e_mail)
+    # 비밀번호 확인
+    if not pwd_context.verify(credentials.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect password")
+    return user
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=8000)
