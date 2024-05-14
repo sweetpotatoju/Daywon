@@ -1,4 +1,6 @@
 # 'app/core/db' 폴더 내의 'base.py' 파일 무시
 app/core/db/base.py
+app/test
+
 
 app/core/prompt_image/ai_image
