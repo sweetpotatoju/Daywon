@@ -72,11 +72,19 @@ async def create_prompt(finance_category):
     return await call_api(api_url, headers, data)
 
 
-async def create_video_prompt(conceptual_prompt):
+async def create_example_prompt(conceptual_prompt):
     api_key = get_api_key()
     model = 'gpt-4'
-    system_prompt = f"각 문장의 글자 수가 80자 이내인 총 6문장으로 설명하고, 어린 아이에게 이야기하는 느낌으로 말한다. 온점은 오로지 문장이 끝났을 때만 사용합니다. 영어가 아닌 한글로만 작성해주세요."
-    user_prompt = f"{conceptual_prompt}에 대한 구체적인 실생활 예시를 들고 알아 듣기 쉽게 설명해줘"
+    system_prompt = """
+    다음 조건들을 모두 만족하는 문장을 만들어주세요.
+    1 - 각 문장의 글자 수가 80자 이내로 작성해주세요.
+    2 - 총 6문장을 작성해주세요.
+    3 - 영어가 아닌 한글만 사용해주세요.
+    4-  10대에게 이야기하듯이 작성해주세요.
+    5 - 온점은 오로지 문장이 끝났을 때만 사용해주세요.
+    """
+
+    user_prompt = f"다음 동작을 수행하세요. 1.{conceptual_prompt}에 대한 구체적인 실생활 예시를 들어주세요. 2.10대에게 이야기하듯이 알아 듣기 쉽게 작성해주세요."
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
 
