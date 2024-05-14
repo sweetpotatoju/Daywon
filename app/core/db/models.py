@@ -9,9 +9,9 @@ class User(Base):
     e_mail = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     name = Column(String, index=True)
-    nickname = Column(String, index=True)
-    level = Column(String)
-    user_point = Column(String, index=True)
+    nickname = Column(String, unique=True, index=True)
+    level = Column(String, default= "0")
+    user_point = Column(String, index=True, default= "0")
     is_active = Column(Boolean, default=True)
 
     histories = relationship("History", back_populates="users")
