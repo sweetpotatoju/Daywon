@@ -4,7 +4,7 @@ from app.core.api import util_api, get_api_key
 
 
 async def call_api(api_url, headers, data):
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(api_url, headers=headers, json=data)
         if response.status_code == 200:
             return response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
@@ -20,15 +20,15 @@ async def create_prompt(finance_category):
     print(level)
 
     if level == 1:
-        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 금융 개념과 용어에 익숙하지 않은 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 한글만 사용하여 앞 뒤 문맥을 고려해서 금융 개념과 용어에 익숙하지 않은 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
     elif level == 2:
-        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 기본적인 금융 용어는 알고 있지만, 금융 상품과 서비스에 대한 이해가 제한적인 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 한글만 사용하여 앞 뒤 문맥을 고려해서 기본적인 금융 용어는 알고 있지만, 금융 상품과 서비스에 대한 이해가 제한적인 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
     elif level == 3:
-        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 기본적인 금융 상품과 서비스를 이해하고 있으며, 다양한 투자 옵션에 대한 지식을 확장하고 싶어하는 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 한글만 사용하여 앞 뒤 문맥을 고려해서 기본적인 금융 상품과 서비스를 이해하고 있으며, 다양한 투자 옵션에 대한 지식을 확장하고 싶어하는 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
     elif level == 4:
-        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 다양한 투자 상품에 대한 좋은 이해를 가지고 있고, 복잡한 금융 전략과 시장 분석에 대한 지식을 더욱 깊이 있게 이해하고자 하는 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 한글만 사용하여 앞 뒤 문맥을 고려해서 다양한 투자 상품에 대한 좋은 이해를 가지고 있고, 복잡한 금융 전략과 시장 분석에 대한 지식을 더욱 깊이 있게 이해하고자 하는 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
     elif level == 5:
-        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 금융 분야에서 근무하거나 고급 금융 이론과 실무 경험을 갖춘 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 한글만 사용하여 앞 뒤 문맥을 고려해서 금융 분야에서 근무하거나 고급 금융 이론과 실무 경험을 갖춘 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
     else:
         return "Invalid level"
 
@@ -41,7 +41,7 @@ async def create_prompt(finance_category):
 async def create_video_prompt(conceptual_prompt):
     api_key = get_api_key()
     model = 'gpt-4'
-    system_prompt = f"각 문장의 글자 수가 80자 이내인 총 6문장으로 설명하고, 어린 아이에게 이야기하는 느낌으로 말한다. 온점은 오로지 문장이 끝났을 때만 사용합니다."
+    system_prompt = f"각 문장의 글자 수가 80자 이내인 총 6문장으로 설명하고, 어린 아이에게 이야기하는 느낌으로 말한다. 온점은 오로지 문장이 끝났을 때만 사용합니다. 한글로만 작성해주세요."
     user_prompt = f"{conceptual_prompt}에 대한 구체적인 실생활 예시를 들고 알아 듣기 쉽게 설명해줘"
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
