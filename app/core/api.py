@@ -1,7 +1,5 @@
 import os
 
-from fastapi import HTTPException
-
 
 def util_api(api_key, model, system_prompt, user_prompt):
     api_url = "https://api.openai.com/v1/chat/completions"
@@ -26,4 +24,3 @@ def get_api_key():
     if api_key is None:
         raise ValueError("API key is not set")
     return api_key
-

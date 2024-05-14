@@ -1,12 +1,6 @@
 import httpx
 import random
-
-import requests
-from fastapi import Depends, HTTPException
 from app.core.api import util_api, get_api_key
-import openai
-import webbrowser
-import urllib.request
 
 
 async def call_api(api_url, headers, data):
@@ -21,8 +15,25 @@ async def call_api(api_url, headers, data):
 async def create_prompt(finance_category):
     api_key = get_api_key()
     model = 'gpt-4'
-    system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 요약하여 고등학생에게 이야기를 들려주듯이 쉽게 알려줍니다."
-    user_prompt = f"{get_finance_category(finance_category)}를 주제로 정하고, 주제의 금융 상품 중 하나에 대한 설명과 장단점 알려줘."
+
+    level = get_finance_level()
+    print(level)
+
+    if level == 1:
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 금융 개념과 용어에 익숙하지 않은 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+    elif level == 2:
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 기본적인 금융 용어는 알고 있지만, 금융 상품과 서비스에 대한 이해가 제한적인 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+    elif level == 3:
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 기본적인 금융 상품과 서비스를 이해하고 있으며, 다양한 투자 옵션에 대한 지식을 확장하고 싶어하는 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+    elif level == 4:
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 다양한 투자 상품에 대한 좋은 이해를 가지고 있고, 복잡한 금융 전략과 시장 분석에 대한 지식을 더욱 깊이 있게 이해하고자 하는 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+    elif level == 5:
+        system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 앞 뒤 문맥을 고려해서 금융 분야에서 근무하거나 고급 금융 이론과 실무 경험을 갖춘 사람들에게 이야기를 들려주듯이 쉽게 알려줍니다."
+    else:
+        return "Invalid level"
+
+    # system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 요약하여 고등학생에게 이야기를 들려주듯이 쉽게 알려줍니다."
+    user_prompt = f"{get_finance_category(finance_category)}를 주제로 정하고, 주제의 금융 상품 중 하나에 대한 개념 설명과 장점과 단점을 알려줘."
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
 
@@ -45,7 +56,7 @@ def get_finance_category(finance_category=None):
 
 def get_finance_level(finance_level=None):
     # 예시
-    finance_levels = {0, 1, 2, 3, 4}
+    finance_levels = {1, 2, 3, 4, 5}
     if finance_level is None:
         finance_level = random.choice(list(finance_levels))
     return finance_level
