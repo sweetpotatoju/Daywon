@@ -1,6 +1,6 @@
 import unittest
 from unittest import TestCase
-from app.core.prompt_image.createPrompt import create_prompt
+from app.core.prompt_image.createPrompt import create_prompt, create_example_prompt
 from app.core.problem.createProblem import create_problem
 
 class Test(unittest.IsolatedAsyncioTestCase):
@@ -9,5 +9,5 @@ class Test(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(result)
         print(result)
 
-        test_problem = await create_problem(result)
-        print(test_problem)
+        test_example = await create_example_prompt(result)
+        print(test_example)
