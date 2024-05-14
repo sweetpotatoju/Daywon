@@ -1,10 +1,10 @@
 import httpx
 from app.core.api import util_api, get_api_key  # 앞서 정의한 함수를 임포트
 
-async def create_problem(script, example_script):
 
+async def create_problem(script, example_script):
     api_key = get_api_key()
-    model='ft:gpt-3.5-turbo-0125:personal:daywon123:9HulgDod'
+    model = 'ft:gpt-3.5-turbo-0125:personal:daywon123:9HulgDod'
 
     system_prompt = f"""
     다음 조건을 모두 만족하는 문제를 만들어주세요.
@@ -14,6 +14,7 @@ async def create_problem(script, example_script):
     4 - 한국어만 사용해주세요.
     5 - 문장들의 앞, 뒤 문맥을 고려해서 작성해주세요.
     6 - 문제의 보기는 하나의 명확한 정답을 포함하고, 나머지는 명백히 오답이 되도록 작성해주세요. 정답이 아닌 보기는 틀린 정보여야 합니다.
+    7 - 영어는 한국어로 번역해주세요.
 
     다음 형식을 사용하십시오.
     문제 :
