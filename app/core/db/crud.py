@@ -1,19 +1,38 @@
 from sqlalchemy.orm import Session
 from app.core.db import models, schemas
 from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking
+from passlib.hash import bcrypt
 
 
-def get_user(db: Session, user_id: int):
-    # 특정 사용자를 ID로 조회
-    return db.query(models.User).filter(models.User.user_id == user_id).first()
+def get_user_by_email(db: Session, e_mail: str) -> object:
+    return db.query(models.User).filter(models.User.e_mail == e_mail).first()
 
 
-def create_user(db: Session, user):
-    # 새 사용자를 생성
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()
+
+
+def create_user(db: Session, user_create: schemas.UserCreate):
+    # 평문 패스워드를 bcrypt 해시로 변환
+    hashed_password = bcrypt.hash(user_create.hashed_password)
+
+    # User 모델 인스턴스 생성
+    user = models.User(
+        name=user_create.name,
+        nickname=user_create.nickname,
+        e_mail=user_create.e_mail,
+        level=user_create.level,
+        user_point=user_create.user_point,
+        hashed_password=hashed_password  # 해싱된 비밀번호 저장
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
+
+#e_mail 중복 검사 함수
+def get_user_by_nickname(db: Session, nickname: str):
+    return db.query(models.User).filter(models.User.nickname == nickname).first()
 
 
 def update_user(db: Session, user_id: int, update_data):
@@ -118,22 +137,22 @@ def update_question(db: Session, q_id: int, update_data):
     return None
 
 
-# comment
-def create_comment(db: Session, comment_data):
-    comment = Comment(
-        q_id=comment_data['q_id'],
-        comment_1=comment_data['comment_1'],
-        comment_2=comment_data['comment_2'],
-        comment_3=comment_data['comment_3']
-    )
-    db.add(comment)
-    db.commit()
-    db.refresh(comment)
-    return comment
-
-
-def get_comments_by_question_id(db: Session, q_id: int):
-    return db.query(Comment).filter(Comment.q_id == q_id).all()
+# # comment
+# def create_comment(db: Session, comment_data):
+#     comment = Comment(
+#         q_id=comment_data['q_id'],
+#         comment_1=comment_data['comment_1'],
+#         comment_2=comment_data['comment_2'],
+#         comment_3=comment_data['comment_3']
+#     )
+#     db.add(comment)
+#     db.commit()
+#     db.refresh(comment)
+#     return comment
+#
+#
+# def get_comments_by_question_id(db: Session, q_id: int):
+#     return db.query(Comment).filter(Comment.q_id == q_id).all()
 
 
 # Shortform

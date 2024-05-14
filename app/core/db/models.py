@@ -6,18 +6,16 @@ from app.core.db.base import Base
 class User(Base):
     __tablename__ = "users"
     user_id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    nickname = Column(String, index=True)
-    hashed_password = Column(String)
     e_mail = Column(String, unique=True, index=True)
-    level = Column(String)
-    user_point = Column(String, index=True)
-
+    hashed_password = Column(String)
+    name = Column(String, index=True)
+    nickname = Column(String, unique=True, index=True)
+    level = Column(String, default= "0")
+    user_point = Column(String, index=True, default= "0")
     is_active = Column(Boolean, default=True)
 
     histories = relationship("History", back_populates="users")
     rankings = relationship("Ranking", back_populates="users")
-
 
 
 class Scripts(Base):
@@ -56,7 +54,7 @@ class Question(Base):
     minus_point = Column(String)
 
     scripts = relationship("Scripts", back_populates="questions")
-    # comments = relationship("Comment", back_populates="questions")
+    comments = relationship("Comment", back_populates="questions")
 
 
 class Comment(Base):
@@ -73,6 +71,7 @@ class Admin(Base):
     __tablename__ = "admin"
     admin_id = Column(Integer, primary_key=True, index=True)
     password = Column(String)
+    scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
     scripts = relationship("Scripts", back_populates="admins")
 
 
