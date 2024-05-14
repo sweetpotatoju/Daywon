@@ -34,7 +34,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @app.get("/users/check_email/")
 def check_email(email: str, db: Session = Depends(get_db)):
-    if crud.get_user_by_email(db, email=email):
+    if crud.get_user_by_email(db, e_mail=email):
         return {"is_available": False}
     return {"is_available": True}
 
