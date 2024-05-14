@@ -19,6 +19,11 @@ class UserRead(UserBase):
     user_id: int
 
 
+class Login(BaseModel):
+    e_mail: str
+    password: str
+
+
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     nickname: Optional[str] = None
