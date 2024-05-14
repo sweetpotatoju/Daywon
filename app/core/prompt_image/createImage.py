@@ -14,7 +14,7 @@ async def generate_images(prompt, clips_info):
     for i, prompt in enumerate(prompt):
         response = client.images.generate(
             model="dall-e-3",
-            prompt=prompt,
+            prompt=prompt + "(There are no letters or text in the image. 그림체를 동화나 만화처럼 그려줘)",
             size="1024x1792",
             quality="standard"
         )
