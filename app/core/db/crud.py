@@ -3,18 +3,27 @@ from app.core.db import models, schemas
 from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking
 
 
-def get_user(db: Session, user_id: int):
-    # 특정 사용자를 ID로 조회
-    return db.query(models.User).filter(models.User.user_id == user_id).first()
+def get_user_by_email(db: Session, email: str) -> object:
+    return db.query(models.User).filter(models.User.e_mail == email).first()
+
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def create_user(db: Session, user):
-    # 새 사용자를 생성
+def create_user(db: Session, user_create: schemas.UserCreate):
+    # UserCreate 인스턴스에서 User 모델 인스턴스를 생성
+    user = models.User(
+        name=user_create.name,
+        nickname=user_create.nickname,
+        e_mail=user_create.e_mail,
+        level=user_create.level,
+        user_point=user_create.user_point,
+        hashed_password=user_create.hashed_password  # 비밀번호는 해싱된 상태로 저장
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
-
 
 def update_user(db: Session, user_id: int, update_data):
     # 사용자 정보 갱신
@@ -118,22 +127,22 @@ def update_question(db: Session, q_id: int, update_data):
     return None
 
 
-# comment
-def create_comment(db: Session, comment_data):
-    comment = Comment(
-        q_id=comment_data['q_id'],
-        comment_1=comment_data['comment_1'],
-        comment_2=comment_data['comment_2'],
-        comment_3=comment_data['comment_3']
-    )
-    db.add(comment)
-    db.commit()
-    db.refresh(comment)
-    return comment
-
-
-def get_comments_by_question_id(db: Session, q_id: int):
-    return db.query(Comment).filter(Comment.q_id == q_id).all()
+# # comment
+# def create_comment(db: Session, comment_data):
+#     comment = Comment(
+#         q_id=comment_data['q_id'],
+#         comment_1=comment_data['comment_1'],
+#         comment_2=comment_data['comment_2'],
+#         comment_3=comment_data['comment_3']
+#     )
+#     db.add(comment)
+#     db.commit()
+#     db.refresh(comment)
+#     return comment
+#
+#
+# def get_comments_by_question_id(db: Session, q_id: int):
+#     return db.query(Comment).filter(Comment.q_id == q_id).all()
 
 
 # Shortform
