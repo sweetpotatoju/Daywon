@@ -5,6 +5,7 @@ async def create_problem(script, example_script):
 
     api_key = get_api_key()
     model='ft:gpt-3.5-turbo-0125:personal:daywon123:9HulgDod'
+
     system_prompt = f"""
     다음 조건을 모두 만족하는 문제를 만들어주세요.
     1 - 10대 수준에서 이해할 수 있게 작성해주세요.
@@ -12,7 +13,8 @@ async def create_problem(script, example_script):
     3 - 정답에 대한 해설도 작성해주세요.
     4 - 영어가 아닌 한글로만 작성해주세요.
     5 - 문장들의 앞, 뒤 문맥을 고려해서 작성해주세요.
-    
+    6 - 문제의 보기는 하나의 명확한 정답을 포함하고, 나머지는 명백히 오답이 되도록 작성해주세요.
+
     다음 형식을 사용하십시오.
     문제 :
     보기 :
@@ -22,12 +24,13 @@ async def create_problem(script, example_script):
     4.
     정답 :
     해설 :
-    
     """
 
-    user_prompt = (f"문제: {script}와 {example_script}에서 언급한 내용을 이용하여 객관식 문제 하나를 만들어주세요. 영어가 아닌 한글로만 작성해주세요."
-                   f"문제 형식은 객관식이며, 선택지는 네 개입니다. 문제의 정답은 확실하게 한 개만 존재해야 합니다. 영어가 아닌 한글로만 작성해주세요."
-                   f"해설: 문제의 정답과 왜 그 답이 맞는지에 대한 간단하고 이해하기 쉬운 설명을 포함해주세요. 영어가 아닌 한글로만 작성해주세요.")
+    user_prompt = (f"문제: {script}와 {example_script}에서 언급한 내용을 이용하여 객관식 문제 하나를 만들어주세요. "
+                   f"문제 형식은 객관식이며, 선택지는 네 개입니다. 문제의 정답은 확실하게 한 개만 존재해야 합니다. "
+                   f"나머지 선택지는 명백히 오답이 되도록 작성해주세요. "
+                   f"해설: 문제의 정답과 왜 그 답이 맞는지에 대한 간단하고 이해하기 쉬운 설명을 포함해주세요. "
+                   f"영어가 아닌 한글로만 작성해주세요.")
 
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
 
