@@ -5,10 +5,10 @@ async def create_problem(script, example_script):
 
     api_key = get_api_key()
     model='ft:gpt-3.5-turbo-0125:personal:daywon123:9HulgDod'
-    system_prompt = f"초등학교 수준에서 이해할 수 있는 {script}와{example_script}에서 언급한 내용을 이용하여 객관식 금융 문제를 만들고, 이에 대한 해설도 제공해주세요. 한글로만 작성해주세요."
-    user_prompt = (f"문제: {script}와 {example_script}에서 언급한 내용을 이용하여 객관식 문제 하나를 만들어주세요. 한글로만 작성해주세요."
-                  f"문제 형식은 객관식이며, 선택지는 네 개입니다.문제의 답은 확실한 정답은 한 개이어야 합니다. 선택지는 1,2,3,4로 표현해주세요. 한글로만 작성해주세요."
-                  f"해설: 문제의 답과 왜 그 답이 맞는지에 대한 간단하고 이해하기 쉬운 설명을 포함해주세요. 한글로만 작성해주세요.")
+    system_prompt = f"초등학교 수준에서 이해할 수 있는 {script}와{example_script}에서 언급한 내용을 이용하여 금융과 관련된 보기가 4개 있는 객관식 문제를 만들고, 정답에 대한 해설도 제공해주세요. 영어가 아닌 한글로만 작성해주세요."
+    user_prompt = (f"문제: {script}와 {example_script}에서 언급한 내용을 이용하여 객관식 문제 하나를 만들어주세요. 영어가 아닌 한글로만 작성해주세요."
+                  f"문제 형식은 객관식이며, 선택지는 네 개입니다. 문제의 정답은 확실하게 한 개만 존재해야 합니다. 선택지는 1,2,3,4로 표현해주세요. 영어가 아닌 한글로만 작성해주세요."
+                  f"해설: 문제의 정답과 왜 그 답이 맞는지에 대한 간단하고 이해하기 쉬운 설명을 포함해주세요. 영어가 아닌 한글로만 작성해주세요.")
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
 
     async with httpx.AsyncClient(timeout=60.0) as client:
