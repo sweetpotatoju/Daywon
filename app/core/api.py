@@ -14,7 +14,7 @@ def util_api(api_key, model, system_prompt, user_prompt):
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        "temperature": 0.5
+        "temperature": 0.0
     }
 
     return api_url, headers, data
