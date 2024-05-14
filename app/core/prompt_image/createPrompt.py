@@ -86,6 +86,9 @@ async def create_example_prompt(conceptual_prompt):
     2 - 영어가 아닌 한글만 사용해주세요.
     3 - 10대에게 이야기하듯이 작성해주세요.
     4 - 온점은 오로지 문장이 끝났을 때만 사용해주세요.
+    5 - 문장들을 숫자로 구분하지 말고, 이어지게 문장들만 출력해주세요.
+
+
     """
 
     user_prompt = f"""
@@ -93,6 +96,8 @@ async def create_example_prompt(conceptual_prompt):
     1 -{conceptual_prompt}에 대한 구체적인 실생활 예시를 들어주세요. 
     2 -10대에게 이야기하듯이 알아 듣기 쉽게 작성해주세요.
     """
+
+
 
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
