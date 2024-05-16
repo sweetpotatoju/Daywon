@@ -4,14 +4,6 @@ from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ran
 from passlib.hash import bcrypt
 
 
-def get_user_by_email(db: Session, e_mail: str) -> object:
-    return db.query(models.User).filter(models.User.e_mail == e_mail).first()
-
-
-def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.User).offset(skip).limit(limit).all()
-
-
 def create_user(db: Session, user_create: schemas.UserCreate):
     # 평문 패스워드를 bcrypt 해시로 변환
     hashed_password = bcrypt.hash(user_create.hashed_password)
@@ -23,22 +15,36 @@ def create_user(db: Session, user_create: schemas.UserCreate):
         e_mail=user_create.e_mail,
         level=user_create.level,
         user_point=user_create.user_point,
-        hashed_password=hashed_password  # 해싱된 비밀번호 저장
+        hashed_password=hashed_password,  # 해싱된 비밀번호 저장
+        profile_image=user_create.profile_image
+
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
 
-#e_mail 중복 검사 함수
+
+def get_user_by_email(db: Session, e_mail: str) -> object:
+    return db.query(models.User).filter(models.User.e_mail == e_mail).first()
+
+
+# 닉네임 중복 검사 함수
+
 def get_user_by_nickname(db: Session, nickname: str):
     return db.query(models.User).filter(models.User.nickname == nickname).first()
 
 
-def update_user(db: Session, user_id: int, update_data):
-    # 사용자 정보 갱신
-    db.query(models.User).filter(models.User.user_id == user_id).update(update_data)
+def update_user(db: Session, user_id: int, update_data: dict):
+    # 사용자 정보 갱신 (닉네임과 프로필 이미지만)
+    db.query(models.User).filter(models.User.user_id == user_id).update({
+        models.User.nickname: update_data["nickname"],
+        models.User.profile_image: update_data["profile_image"]
+    }, synchronize_session=False)
     db.commit()
+
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()
 
 
 def delete_user(db: Session, user_id: int):
