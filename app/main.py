@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
-from app.core.db.crud import get_user_by_email, update_user
-from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate
+from app.core.db.crud import get_user_by_email, update_user, update_user_points
+from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate
 from passlib.context import CryptContext
 
 # DB 테이블 생성
@@ -79,6 +79,31 @@ def update_user_info(user_id: int, update_data: UserUpdate, db: Session = Depend
         "user_id": existing_user.user_id,
         "nickname": existing_user.nickname,
         "profile_image": existing_user.profile_image
+
+    }
+
+@app.put("/user/{user_id}/points")
+def update_points(user_id: int, points_update: PointsUpdate, db: Session = Depends(get_db)):
+    try:
+        update_user_points(db, user_id, points_update.user_point)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    return {
+        "user_point": points_update.user_point,
+        "message": "User points updated successfully"
+    }
+
+@app.get("/user/{user_id}/ranking")
+def get_user_ranking(user_id: int, db: Session = Depends(get_db)):
+    ranking = db.query(models.Ranking).filter(models.Ranking.user_id == user_id).first()
+    if ranking is None:
+        raise HTTPException(status_code=404, detail="Ranking not found for user")
+
+    return {
+        "user_id": ranking.user_id,
+        "ranking_position": ranking.ranking_position,
+        "user_point": ranking.user_point
     }
 
 

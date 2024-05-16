@@ -43,8 +43,44 @@ def update_user(db: Session, user_id: int, update_data: dict):
     }, synchronize_session=False)
     db.commit()
 
+
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
+
+
+def update_user_points(db: Session, user_id: int, new_points: int):
+    # 사용자 포인트 업데이트
+    user = db.query(models.User).filter(models.User.user_id == user_id).first()
+    if user is None:
+        raise ValueError("User not found")
+
+    user.user_point = new_points
+    db.commit()
+    db.refresh(user)
+
+    # 랭킹 업데이트
+    ranking = db.query(models.Ranking).filter(models.Ranking.user_id == user_id).first()
+    if ranking is None:
+        # 랭킹이 없으면 새로 생성
+        ranking = models.Ranking(user_id=user_id, user_point=new_points)
+        db.add(ranking)
+    else:
+        # 랭킹이 있으면 업데이트
+        ranking.user_point = new_points
+    db.commit()
+    db.refresh(ranking)
+
+    # 랭킹 재정렬
+    update_rankings(db)
+
+def update_rankings(db: Session):
+    # 모든 랭킹 데이터를 가져와서 포인트로 정렬
+    rankings = db.query(models.Ranking).order_by(models.Ranking.user_point.desc()).all()
+
+    # 랭킹 업데이트
+    for rank, ranking in enumerate(rankings, start=1):
+        ranking.ranking_position = rank
+    db.commit()
 
 
 def delete_user(db: Session, user_id: int):

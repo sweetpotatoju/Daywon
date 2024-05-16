@@ -11,7 +11,7 @@ class User(Base):
     name = Column(String, index=True)
     nickname = Column(String, unique=True, index=True)
     level = Column(String, default="0")
-    user_point = Column(String, index=True, default="0")
+    user_point = Column(Integer, index=True, default="0")
     profile_image = Column(Integer, ForeignKey("profile_images.image_id"))
     is_active = Column(Boolean, default=True)
 
@@ -23,6 +23,17 @@ class Profile_images(Base):
     __tablename__ = "profile_images"
     image_id = Column(Integer, primary_key=True, index=True)
     image_url = Column(String)
+
+
+# users의 point를 내림차순으로 만들고 ranking을 매김
+class Ranking(Base):
+    __tablename__ = "ranking"
+    r_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    user_point = Column(Integer, index=True)
+    ranking_position = Column(Integer, index=True)  # 랭킹 순위 필드 추가
+
+    users = relationship("User", back_populates="rankings")
 
 
 class Scripts(Base):
@@ -93,11 +104,4 @@ class History(Base):
     scripts = relationship("Scripts", back_populates="histories")
 
 
-# users의 point를 내림차순으로 만들고 ranking을 매김
-class Ranking(Base):
-    __tablename__ = "ranking"
-    r_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
-    user_point = Column(String, index=True)
 
-    users = relationship("User", back_populates="rankings")
