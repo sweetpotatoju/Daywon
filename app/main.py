@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
-from app.core.db.crud import get_user_by_email
+from app.core.db.crud import get_user_by_email, update_user
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate
 from passlib.context import CryptContext
 
@@ -70,10 +70,9 @@ def update_user_info(user_id: int, update_data: UserUpdate, db: Session = Depend
     if existing_user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    existing_user.nickname = update_data.nickname
-    existing_user.profile_image = update_data.profile_image
+    update_data_dict = update_data.dict()
+    update_user(db, user_id, update_data_dict)
 
-    db.commit()
     db.refresh(existing_user)
 
     return {
