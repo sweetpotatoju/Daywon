@@ -2,7 +2,7 @@ import httpx
 from app.core.api import util_api, get_api_key  # 앞서 정의한 함수를 임포트
 
 
-async def create_problem(script, example_script):
+async def create_problem(script, example_script, level):
     api_key = get_api_key()
     # model = 'ft:gpt-3.5-turbo-0125:personal:daywon123:9HulgDod'
     model = 'gpt-4'
@@ -27,6 +27,23 @@ async def create_problem(script, example_script):
     정답 :
     해설 :
     """
+
+    if level is None:
+        return "레벨을 읽어오는 중 오류가 발생했습니다."
+
+    if level == 1:
+        system_prompt = system_prompt + "금융 개념과 용어에 익숙하지 않은 사람들을 위한 난이도로 문제를 만들어 주세요."
+    elif level == 2:
+        system_prompt = system_prompt + "기본적인 금융 용어는 알고 있지만, 금융 상품과 서비스에 대한 이해가 제한적인 사람들을 위한 난이도로 문제를 만들어 주세요."
+    elif level == 3:
+        system_prompt = system_prompt + "기본적인 금융 상품과 서비스를 이해하고 있으며, 다양한 투자 옵션에 대한 지식을 확장하고 싶어하는 사람들을 위한 난이도로 문제를 만들어 주세요."
+    elif level == 4:
+        system_prompt = system_prompt + "다양한 투자 상품에 대한 좋은 이해를 가지고 있고, 복잡한 금융 전략과 시장 분석에 대한 지식을 더욱 깊이 있게 이해하고자 하는 사람들을 위한 난이도로 문제를 만들어 주세요."
+    elif level == 5:
+        system_prompt = system_prompt + "금융 분야에서 근무하거나 고급 금융 이론과 실무 경험을 갖춘 사람들을 위한 난이도로 문제를 만들어 주세요."
+    else:
+        return "유효하지 않은 레벨입니다."
+
 
     user_prompt = f"""
     문제: {script}와 {example_script}에서 언급한 내용을 이용하여 객관식 문제 하나를 만들어주세요.
