@@ -10,12 +10,19 @@ class User(Base):
     hashed_password = Column(String)
     name = Column(String, index=True)
     nickname = Column(String, unique=True, index=True)
-    level = Column(String, default= "0")
-    user_point = Column(String, index=True, default= "0")
+    level = Column(String, default="0")
+    user_point = Column(String, index=True, default="0")
+    profile_image = Column(Integer, ForeignKey("profile_images.image_id"))
     is_active = Column(Boolean, default=True)
 
     histories = relationship("History", back_populates="users")
     rankings = relationship("Ranking", back_populates="users")
+    profile_images=relationship("Profile_images")
+
+class Profile_images(Base):
+    __tablename__ = "profile_images"
+    image_id = Column(Integer, primary_key=True, index=True)
+    image_url = Column(String)
 
 
 class Scripts(Base):
