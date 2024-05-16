@@ -25,6 +25,10 @@ def create_user(db: Session, user_create: schemas.UserCreate):
     return user
 
 
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.user_id == user_id).first()
+
+
 def get_user_by_email(db: Session, e_mail: str) -> object:
     return db.query(models.User).filter(models.User.e_mail == e_mail).first()
 
@@ -73,6 +77,7 @@ def update_user_points(db: Session, user_id: int, new_points: int):
     # 랭킹 재정렬
     update_rankings(db)
 
+
 def update_rankings(db: Session):
     # 모든 랭킹 데이터를 가져와서 포인트로 정렬
     rankings = db.query(models.Ranking).order_by(models.Ranking.user_point.desc()).all()
@@ -83,12 +88,7 @@ def update_rankings(db: Session):
     db.commit()
 
 
-def delete_user(db: Session, user_id: int):
-    # 사용자 삭제
-    user = db.query(models.User).get(user_id)
-    if user:
-        db.delete(user)
-        db.commit()
+###################################################################
 
 
 # Scripts 모델을 위한 CRUD 함수들

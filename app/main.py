@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
-from app.core.db.crud import get_user_by_email, update_user, update_user_points
+from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate
 from passlib.context import CryptContext
 
@@ -31,6 +31,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email or nickname already registered")
     return crud.create_user(db=db, user_create=user)
 
+@app.get("/users/{user_id}/readuser", response_model=schemas.UserBase)
+def read_user(user_id: int, db: Session = Depends(get_db)):
+    user = get_user(db, user_id)
+    return user
 
 @app.get("/users/check_email/")
 def check_email(email: str, db: Session = Depends(get_db)):
@@ -64,7 +68,7 @@ def login(credentials: Login, db: Session = Depends(get_db)):
     return user
 
 
-@app.put("/user/{user_id}")
+@app.put("/user/{user_id}/update")
 def update_user_info(user_id: int, update_data: UserUpdate, db: Session = Depends(get_db)):
     existing_user = db.query(models.User).filter(models.User.user_id == user_id).first()
     if existing_user is None:
