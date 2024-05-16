@@ -6,8 +6,9 @@ class UserBase(BaseModel):
     name: str
     nickname: str
     e_mail: str
-    level: str
-    user_point: str
+    level: str= "1"
+    user_point: str = "0"
+    profile_image: int
 
 
 class UserCreate(UserBase):
@@ -25,12 +26,10 @@ class Login(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = None
     nickname: Optional[str] = None
-    e_mail: Optional[str] = None
-    level: Optional[str] = None
-    user_point: Optional[str] = None
+    profile_image:Optional[int]=None
 
+#############################################################
 
 class ScriptsBase(BaseModel):
     level: int

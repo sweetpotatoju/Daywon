@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email
-from app.core.db.schemas import UserCreate, UserBase, Login
+from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate
 from passlib.context import CryptContext
 
 # DB 테이블 생성
@@ -34,7 +34,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @app.get("/users/check_email/")
 def check_email(email: str, db: Session = Depends(get_db)):
-    if crud.get_user_by_email(db, email=email):
+    if crud.get_user_by_email(db, e_mail=email):
         return {"is_available": False}
     return {"is_available": True}
 
@@ -62,6 +62,25 @@ def login(credentials: Login, db: Session = Depends(get_db)):
     if not pwd_context.verify(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect password")
     return user
+
+
+@app.put("/user/{user_id}")
+def update_user_info(user_id: int, update_data: UserUpdate, db: Session = Depends(get_db)):
+    existing_user = db.query(models.User).filter(models.User.user_id == user_id).first()
+    if existing_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    existing_user.nickname = update_data.nickname
+    existing_user.profile_image = update_data.profile_image
+
+    db.commit()
+    db.refresh(existing_user)
+
+    return {
+        "user_id": existing_user.user_id,
+        "nickname": existing_user.nickname,
+        "profile_image": existing_user.profile_image
+    }
 
 
 if __name__ == "__main__":
