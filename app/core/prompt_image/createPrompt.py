@@ -12,12 +12,15 @@ async def call_api(api_url, headers, data):
             return f"Error: {response.status_code}, {response.text}"
 
 
-async def create_prompt(finance_category):
+async def create_prompt():
     api_key = get_api_key()
     model = 'gpt-4'
 
     level = get_finance_level()
+    category = get_finance_category(level)
+
     print(level)
+    print(category)
 
     if level == 1:
         system_prompt = """
@@ -69,15 +72,19 @@ async def create_prompt(finance_category):
     # system_prompt = "금융 지식을 예시를 들지 않고, 공백 포함한 글자 수를 300자 이내로 요약하여 고등학생에게 이야기를 들려주듯이 쉽게 알려줍니다."
     user_prompt = f"""
     다음 동작을 수행하세요.
-    1 - {get_finance_category(finance_category)}를 주제로 정하세요.
+    1 - {category}를 주제로 정하세요.
     2 - 정해진 주제의 금융 상품 중 하나에 대한 개념을 설명해주세요.
     """
 
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
-    return await call_api(api_url, headers, data)
+
+    # return await call_api(api_url, headers, data)
+
+    conceptual_script = await call_api(api_url, headers, data)
+    return conceptual_script, level, category
 
 
-async def create_example_prompt(conceptual_prompt):
+async def create_example_prompt(finance_category):
     api_key = get_api_key()
     model = 'gpt-4'
     system_prompt = """
@@ -93,20 +100,31 @@ async def create_example_prompt(conceptual_prompt):
 
     user_prompt = f"""
     다음 동작을 수행하세요. 
-    1 -{conceptual_prompt}에 대한 구체적인 실생활 예시를 들어주세요. 
+    1 -{finance_category}에 대한 구체적인 실생활 예시를 들어주세요. 
     2 -10대에게 이야기하듯이 알아 듣기 쉽게 작성해주세요.
     """
-
-
 
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
 
 
-def get_finance_category(finance_category=None):
-    finance_categories = {'저축', '투자', '세금'}
-    if finance_category is None:
-        finance_category = random.choice(list(finance_categories))
+def get_finance_category(level=None):
+    finance_categories = {}
+
+    if level is None:
+        raise ValueError("Invalid level")
+    elif(level == 1):
+        finance_categories = {'저축', '계좌', '예금', '적금', '이자', '비상금','돈', '통장', '잔액', '금리', '예산', '지출', '저축의 중요성', '신용카드', '체크카드', '재무 목표 설정', '간단한 예산 관리'}
+    elif (level == 2):
+        finance_categories = {'신용대출', '주택담보대출', '이자율', '원리금 상환', '생명 보험', '건강 보험', '자동차 보험', '소득세', '부가가치세(VAT)', '국민연금', '퇴직연금', '주식의 개념', '간단한 펀드'}
+    elif (level == 3):
+        finance_categories = {'주식', '채권', '펀드', '부동산', 'ETF(상장지수펀드)','대출 상환 전략', '신용 점수 관리', '재산 보험', '보험료 계산', '리스크 관리', '세금 신고', '세금 공제', '세금 환급', '개인연금', '연금 저축'}
+    elif (level == 4):
+        finance_categories = {'자산 배분', '위험 관리', '수익률 분석', '옵션', '선물', '재무제표 분석', '손익계산서', '대차대조표', '자본 구조', '기업 재무', '기업 가치 평가', '환율', '외환 거래', '해외 투자'}
+    elif (level == 5):
+        finance_categories = {'M&A (인수합병)', '벤처 캐피탈', '사모펀드 재무 비율 분석', '현금 흐름 분석', '자본 비용 상속세', '증여세', '고급 세금 계획', '블록체인', '암호화폐', '디지털 뱅킹', '금융 기술 혁신', '복잡한 자산 관리', '은퇴 계획', '유동성 관리'}
+
+    finance_category = random.choice(list(finance_categories))
     return finance_category
 
 
@@ -118,7 +136,7 @@ def get_finance_level(finance_level=None):
     return finance_level
 
 
-# 2 문장씩 분리
+# 두 문장씩 분리
 def split_text_two(text):
     # 문장을 온점(.) 기준으로 나누기
     sentences = text.split('.')
@@ -135,6 +153,7 @@ def split_text_two(text):
     return sentence_pairs
 
 
+# 한 문장 분리
 def split_text(text):
     # 문장을 온점(.) 기준으로 나누기
     sentences = text.split('.')
