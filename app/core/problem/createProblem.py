@@ -4,7 +4,8 @@ from app.core.api import util_api, get_api_key  # 앞서 정의한 함수를 임
 
 async def create_problem(script, example_script):
     api_key = get_api_key()
-    model = 'ft:gpt-3.5-turbo-0125:personal:daywon123:9HulgDod'
+    # model = 'ft:gpt-3.5-turbo-0125:personal:daywon123:9HulgDod'
+    model = 'gpt-4'
 
     system_prompt = f"""
     다음 조건을 모두 만족하는 문제를 만들어주세요.
