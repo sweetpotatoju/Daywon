@@ -1,13 +1,14 @@
-from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from pydantic import BaseModel
+from typing import Optional
 
 
 class UserBase(BaseModel):
     name: str
     nickname: str
     e_mail: str
-    level: str
-    user_point: str
+    level: str = "1"
+    user_point: int = 0
+    profile_image: int
 
 
 class UserCreate(UserBase):
@@ -19,17 +20,35 @@ class UserRead(UserBase):
     user_id: int
 
 
+class PointsUpdate(BaseModel):
+    user_point: int
+
+
+# class RankingBase(BaseModel):
+#     user_id: int
+#     user_point: int
+#
+#
+# class RankingCreate(RankingBase):
+#     pass
+#
+#
+# class RankingRead(RankingBase):
+#     r_id: int
+#
+#
+# class RankingUpdate(BaseModel):
+#     user_point: Optional[int] = None
+
+
 class Login(BaseModel):
     e_mail: str
     password: str
 
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = None
     nickname: Optional[str] = None
-    e_mail: Optional[str] = None
-    level: Optional[str] = None
-    user_point: Optional[str] = None
+    profile_image: Optional[int] = None
 
 
 class ScriptsBase(BaseModel):
@@ -151,20 +170,3 @@ class HistoryRead(HistoryBase):
 
 class HistoryUpdate(BaseModel):
     T_F: Optional[bool] = None
-
-
-class RankingBase(BaseModel):
-    user_id: int
-    user_point: str
-
-
-class RankingCreate(RankingBase):
-    pass
-
-
-class RankingRead(RankingBase):
-    r_id: int
-
-
-class RankingUpdate(BaseModel):
-    user_point: Optional[str] = None
