@@ -6,3 +6,4 @@ alembic
 app/core/FTP_SERVER/setting.py
 
 
+app/core/prompt_image/ai_image
