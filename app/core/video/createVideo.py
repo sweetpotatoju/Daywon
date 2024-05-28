@@ -48,14 +48,14 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
         return f"Failed to save audio: {str(e)}"
 
 
-
 class VideoCreator:
     def __init__(self, clips_info):
         self.clips_info = clips_info
         self.video_name = 'completed_video'
         self.font = 'NanumGothic'
         self.fontsize = 60
-        self.color = 'black'
+        self.color = 'white'
+        self.bg_color = 'black'
         self.wrap_width = 20
         self.padding = 20
         self.audio_folder = 'audio'
@@ -93,7 +93,6 @@ class VideoCreator:
             audio_path = get_audio(wrapped_text)
             audio_path_str = str(audio_path)
 
-
             # 오디오 클립 생성 및 지속시간 확인
             audio_clip = AudioFileClip(audio_path_str)
             duration = audio_clip.duration
@@ -101,7 +100,8 @@ class VideoCreator:
             # 이미지 클립과 자막 생성
             clip = ImageClip(path, duration=duration)
             img_width, img_height = clip.size
-            txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, font=self.font, method='label')
+            txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, bg_color=self.bg_color,
+                                font=self.font, method='label')
             txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(
                 duration)
 
