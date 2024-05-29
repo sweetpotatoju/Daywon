@@ -53,7 +53,7 @@ class UserUpdate(BaseModel):
 
 class ScriptsBase(BaseModel):
     level: int
-    category_name: str
+    category_name: int
     content_1: str
     content_2: str
     content_3: str
