@@ -72,13 +72,10 @@ async def create_prompt():
     else:
         return "Invalid level"
 
-    additional_prompts = ['기본 개념과 용어 설명', '구체적인 정보', '특징']
-    selected_additional_prompt = random.choice(additional_prompts)
     user_prompt = f"""
     다음 동작을 수행하세요.
-    1 - {category}에 관련된 {selected_additional_prompt}에 대해서 설명해주세요. 
+    1 - {category}에 대해서 명확하게 설명해주세요. 
     """
-    print(f"additional prompts : {selected_additional_prompt}\n")
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
 
     # return await call_api(api_url, headers, data)
