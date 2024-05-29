@@ -1,3 +1,4 @@
+
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from app.core.db.base import Base
@@ -40,7 +41,8 @@ class Scripts(Base):
     __tablename__ = "scripts"
     scripts_id = Column(Integer, primary_key=True, index=True)
     level = Column(Integer, index=True)
-    category_name = Column(String)
+    category_name = Column(Integer)
+    inspection_status = Column(Boolean,default=False)
     content_1 = Column(String)
     content_2 = Column(String)
     content_3 = Column(String)

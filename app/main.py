@@ -7,6 +7,8 @@ from app.core.db.crud import get_user_by_email, update_user, update_user_points,
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate
 from passlib.context import CryptContext
 
+from app.core.prompt_image.createPrompt import create_prompt
+
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -110,6 +112,26 @@ def get_user_ranking(user_id: int, db: Session = Depends(get_db)):
         "user_point": ranking.user_point
     }
 
+@app.get("/scripts_read/{scripts_id}")
+def read_script(scripts_id: int, db: Session = Depends(get_db)):
+    db_script = crud.get_script(db, scripts_id=scripts_id)
+    if db_script is None:
+        raise HTTPException(status_code=404, detail="Script not found")
+    return db_script
+
+@app.post("/create_prompt_and_save/")
+async def create_prompt_and_save(db: Session = Depends(get_db)):
+    parts, level, category = await create_prompt()
+    script_data = {
+        "level": 1,
+        "category_name": 1,
+        "content_1": parts[0],
+        "content_2": parts[1],
+        "content_3": parts[2],
+        "inspection_status": False
+    }
+    new_script = crud.create_script(db=db, script_data=script_data)
+    return new_script
 
 if __name__ == "__main__":
     import uvicorn
