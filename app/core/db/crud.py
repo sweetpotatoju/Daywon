@@ -93,7 +93,6 @@ def update_rankings(db: Session):
 
 # Scripts 모델을 위한 CRUD 함수들
 def get_script(db: Session, scripts_id: int):
-    # 특정 스크립트를 ID로 조회
     return db.query(Scripts).filter(Scripts.scripts_id == scripts_id).first()
 
 
@@ -134,10 +133,10 @@ def delete_script(db: Session, script_id: int):
     return False
 
 
-def get_scripts_by_category(db: Session, category_name: str):
+def get_scripts_by_category(db: Session, category_name: int):
     return db.query(Scripts).filter(Scripts.category_name == category_name).all()
 
-
+###################################################################
 # Question
 def create_question(db: Session, question_data):
     question = Question(
