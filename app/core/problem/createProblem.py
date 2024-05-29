@@ -2,20 +2,18 @@ import httpx
 from app.core.api import util_api, get_api_key  # 앞서 정의한 함수를 임포트
 
 
-async def create_problem(script, example_script, level):
+async def create_problem(script, example_script, category, level):
     api_key = get_api_key()
     # model = 'ft:gpt-3.5-turbo-0125:personal:daywon123:9HulgDod'
     model = 'gpt-4'
 
     system_prompt = f"""
     다음 조건을 모두 만족하는 문제를 만들어주세요.
-    1 - 10대가 이해할 수 있도록 작성해주세요.
-    2 - 생성된 문제의 보기는 4개만 만들어 주세요.
-    3 - 문제의 정답에 대한 설명과 오답에 대한 설명을 해설로 작성해주세요.
-    4 - 문제를 생성할 때에는 한글만 사용해주세요.
-    5 - 앞 뒤 문맥을 고려해서 문장들을 작성해주세요.
-    6 - 명확한 정답 보기 하나와 확실한 오답이유가 있는 오답 보기 3개로 만들어주세요.
-    7 - 만약 영어가 포함되어 있으면 한국어로 번역해주세요.
+    1 - 생성된 문제의 보기는 4개만 만들어 주세요.
+    2 - 문제의 정답에 대한 설명과 오답에 대한 설명을 해설로 작성해주세요.
+    3 - 문제를 생성할 때에는 한글만 사용해주세요.
+    4 - 앞 뒤 문맥을 고려해서 문장들을 작성해주세요.
+    5 - 명확한 정답 보기 1개와 확실한 오답이유가 있는 오답 보기 3개로 만들어주세요.
 
     다음 형식을 사용하십시오.
     문제 :
@@ -44,7 +42,7 @@ async def create_problem(script, example_script, level):
         return "유효하지 않은 레벨입니다."
 
     user_prompt = f"""
-    문제: {script}와 {example_script}에서 언급한 내용을 이용하여 객관식 문제 하나를 만들어주세요.
+    문제: {script}와 {example_script}에서 언급한 내용을 이용하여 {category}에 관한 객관식 문제 하나를 만들어주세요.
     """
     # 문제 형식은 객관식이며, 선택지는 4 개입니다.
     #     문제의 정답은 확실하게 한 개만 존재해야 합니다.
