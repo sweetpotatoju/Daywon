@@ -1,3 +1,4 @@
+import ftplib
 import textwrap
 import os
 from pathlib import Path
@@ -5,10 +6,13 @@ from openai import OpenAI
 import random
 from moviepy.editor import ImageClip, concatenate_videoclips, CompositeVideoClip, TextClip, AudioFileClip
 
+from app.core.FTP_SERVER.setting import get_ftp_connection
+
+ftp_directory = "/video"
+
 
 # https://www.imagemagick.org/script/download.php#windows에서 imagemagick(dynamic ver) 다운
 # -> (+) 레거시 추가 체크 후, 설치 (pip 설치 불가능)
-
 
 def get_audio(input_text="주식에 대해 알아볼까요?"):
     client = OpenAI()
@@ -48,9 +52,8 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
         return f"Failed to save audio: {str(e)}"
 
 
-
 class VideoCreator:
-    def __init__(self, clips_info):
+    def __init__(self, clips_info, ftp_directory):
         self.clips_info = clips_info
         self.video_name = 'completed_video'
         self.font = 'NanumGothic'
@@ -60,8 +63,9 @@ class VideoCreator:
         self.padding = 20
         self.audio_folder = 'audio'
         self.video_folder = 'completed_video'
-        # self.ensure_folders_exists()
+        self.ensure_folders_exists()
         self.video_path = self.create_video_file_name()
+        self.ftp_directory = ftp_directory
 
     def ensure_folders_exists(self):
         # 오디오 폴더와 비디오 폴더가 있는지 확인하고 없다면 생성
@@ -90,9 +94,8 @@ class VideoCreator:
             wrapped_text = textwrap.fill(text, width=self.wrap_width)
 
             # get_audio 함수를 사용하여 오디오 파일 생성 및 경로 반환
-            audio_path = get_audio(wrapped_text)
+            audio_path = self.get_audio(wrapped_text)
             audio_path_str = str(audio_path)
-
 
             # 오디오 클립 생성 및 지속시간 확인
             audio_clip = AudioFileClip(audio_path_str)
@@ -124,3 +127,19 @@ class VideoCreator:
             if os.path.exists(file_path):
                 os.remove(file_path)
                 print(f"Deleted {file_path}")
+
+        # 비디오 파일을 FTP 서버에 업로드
+        self.upload_to_ftp(self.video_path)
+
+        # 최종 비디오 파일 경로 반환
+        return self.video_path
+
+    def upload_to_ftp(self, file_path):
+        with get_ftp_connection() as ftp:
+            # 디렉토리 변경 (필요한 경우)
+            ftp.cwd(self.ftp_directory)
+
+            # 파일 업로드
+            with open(file_path, 'rb') as file:
+                ftp.storbinary(f'STOR {os.path.basename(file_path)}', file)
+            print(f"Uploaded {file_path} to FTP server.")
