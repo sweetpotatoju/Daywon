@@ -66,12 +66,13 @@ class Question(Base):
     q_id = Column(Integer, primary_key=True, index=True)
     scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
     answer_option = Column(Integer)
-    question = Column(Integer)
+    question = Column(String)
     option_1 = Column(String)
     option_2 = Column(String)
     option_3 = Column(String)
-    plus_point = Column(String)
-    minus_point = Column(String)
+    option_4 = Column(String)
+    plus_point = Column(Integer)
+    minus_point = Column(Integer)
 
     scripts = relationship("Scripts", back_populates="questions")
     comments = relationship("Comment", back_populates="questions")
@@ -84,6 +85,7 @@ class Comment(Base):
     comment_1 = Column(String)
     comment_2 = Column(String)
     comment_3 = Column(String)
+    comment_4 = Column(String)
     questions = relationship("Question", back_populates="comments")
 
 
