@@ -1,7 +1,8 @@
 from app.core.api import util_api, get_api_key, call_api  # 앞서 정의한 함수를 임포트
 
 
-async def create_problem(script, example_script, category, level, custom_prompt=None):
+async def create_problem(script, example_script, level, custom_prompt=None):
+
     api_key = get_api_key()
     model = 'gpt-4'
 
@@ -43,8 +44,14 @@ async def create_problem(script, example_script, category, level, custom_prompt=
         user_prompt = custom_prompt
     else:
         user_prompt = f"""
-            문제: {script}와 {example_script}에서 언급한 내용을 이용하여 {category}에 관한 객관식 문제 하나를 만들어주세요.
-            """
+
+        문제: {script}와 {example_script}에서 언급한 내용을 이용하여 객관식 문제 하나를 만들어주세요.
+        문제 형식은 객관식이며, 선택지는 4 개입니다.
+        문제의 정답은 확실하게 한 개만 존재해야 합니다.
+        정답이 아닌 나머지 3개의 선택지는 명백히 오답이어야 합니다.
+        해설: 문제의 정답과 왜 그 답이 맞는지에 대해 간단하고 이해하기 쉬운 설명을 포함해주세요.
+        영어가 아닌 한글 또는 한국어로만 작성해주세요.
+        """
 
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     origin_problem = await call_api(api_url, headers, data)

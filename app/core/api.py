@@ -1,5 +1,7 @@
 import os
 
+import httpx
+
 
 def util_api(api_key, model, system_prompt, user_prompt):
     api_url = "https://api.openai.com/v1/chat/completions"
