@@ -1,7 +1,7 @@
 from app.core.api import util_api, get_api_key, call_api  # 앞서 정의한 함수를 임포트
 
 
-async def create_problem(script, example_script, level, custom_prompt=None):
+async def create_problem(script, example_script, category, level, custom_prompt=None):
     api_key = get_api_key()
     model = 'gpt-4'
 
