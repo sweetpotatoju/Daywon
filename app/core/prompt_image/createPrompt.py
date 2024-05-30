@@ -1,25 +1,17 @@
 import httpx
 import random
-from app.core.api import util_api, get_api_key
+from app.core.api import util_api, get_api_key, call_api
 
-
-async def call_api(api_url, headers, data):
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(api_url, headers=headers, json=data)
-        if response.status_code == 200:
-            return response.json().get("choices", [{}])[0].get("message", {}).get("content", "")
-        else:
-            return f"Error: {response.status_code}, {response.text}"
+api_key = get_api_key()
+model = 'gpt-4'
 
 
 async def create_prompt():
-    api_key = get_api_key()
-    model = 'gpt-4'
-
     level = get_finance_level()
     category = get_finance_category()
     print(level)
     print(category)
+
     if level == 1:
         system_prompt = """
         다음 조건들을 모두 만족하는 문장을 만들어주세요.
@@ -76,6 +68,7 @@ async def create_prompt():
     다음 동작을 수행하세요.
     1 - {category}에 대해서 명확하게 설명해주세요. 
     """
+
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
 
     # return await call_api(api_url, headers, data)
@@ -84,12 +77,9 @@ async def create_prompt():
     return conceptual_script, level, category
 
 
-async def create_example_prompt(finance_category, level):
-    api_key = get_api_key()
-    model = 'gpt-4'
-
+async def modify_prompt(original_conceptual_script, level, category, new_prompt):
     if level == 1:
-        system_prompt = """
+        modify_system_prompt = f"""
         다음 조건들을 모두 만족하는 예시 문장을 만들어주세요.
         1 - 각 문장의 글자 수가 80자 이내로 총 6개의 문장을 작성해주세요.
         2 - 영어가 아닌 한글만 사용해주세요.
@@ -98,10 +88,15 @@ async def create_example_prompt(finance_category, level):
         5 - 문장들의 앞 뒤 문맥을 고려해서, 문장의 내용을 초등학교 저학년 학생들이 겪을 만한 실제 상황을 예시에 포함해주세요.
         6 - 이 연령대의 학생들이 쉽게 이해할 수 있도록 간단한 용어를 사용하고, 재미있고 친근한 예시를 포함하세요.
         7 - 대상을 언급하지 마세요.
-        """
+        
+        기존 개념 적용 스크립트:
+        {original_conceptual_script}
 
+        사용자 수정 사항:
+        {new_prompt}
+        """
     elif level == 2:
-        system_prompt = """
+        modify_system_prompt = f"""
         다음 조건들을 모두 만족하는 예시 문장을 만들어주세요.
         1 - 각 문장의 글자 수가 80자 이내로 총 6개의 문장을 작성해주세요.
         2 - 영어가 아닌 한글만 사용해주세요.
@@ -110,10 +105,15 @@ async def create_example_prompt(finance_category, level):
         5 - 문장들의 앞 뒤 문맥을 고려해서, 문장의 내용을 초등학교 고학년 학생들이 겪을 만한 실제 상황을 예시에 포함해주세요.
         6 - 이 연령대의 학생들이 쉽게 이해할 수 있도록 간단한 용어를 사용하고, 재미있고 친근한 예시를 포함하세요.
         7 - 대상을 언급하지 마세요.
-        """
+        
+        기존 개념 적용 스크립트:
+        {original_conceptual_script}
 
+        사용자 수정 사항:
+        {new_prompt}
+        """
     elif level == 3:
-        system_prompt = """
+        modify_system_prompt = f"""
         다음 조건들을 모두 만족하는 예시 문장을 만들어주세요.
         1 - 각 문장의 글자 수가 80자 이내로 총 6개의 문장을 작성해주세요.
         2 - 영어가 아닌 한글만 사용해주세요.
@@ -122,9 +122,15 @@ async def create_example_prompt(finance_category, level):
         5 - 문장들의 앞 뒤 문맥을 고려해서, 문장의 내용을 중학교 학생들이 겪을 만한 실제 상황을 예시에 포함해주세요.
         6 - 이 연령대의 학생들이 쉽게 이해할 수 있도록 간단한 용어를 사용하고, 재미있고 친근한 예시를 포함하세요.
         7 - 대상을 언급하지 마세요.
+        
+        기존 개념 적용 스크립트:
+        {original_conceptual_script}
+
+        사용자 수정 사항:
+        {new_prompt}
         """
     elif level == 4:
-        system_prompt = """
+        modify_system_prompt = f"""
         다음 조건들을 모두 만족하는 예시 문장을 만들어주세요.
         1 - 각 문장의 글자 수가 80자 이내로 총 6개의 문장을 작성해주세요.
         2 - 영어가 아닌 한글만 사용해주세요.
@@ -133,10 +139,15 @@ async def create_example_prompt(finance_category, level):
         5 - 문장들의 앞 뒤 문맥을 고려해서, 문장의 내용을 고등학교 학생들이 겪을 만한 실제 상황을 예시에 포함해주세요.
         6 - 이 연령대의 학생들이 쉽게 이해할 수 있도록 간단한 용어를 사용하고, 재미있고 친근한 예시를 포함하세요.
         7 - 대상을 언급하지 마세요.
-        """
+        
+        기존 개념 적용 스크립트:
+        {original_conceptual_script}
 
+        사용자 수정 사항:
+        {new_prompt}
+        """
     elif level == 5:
-        system_prompt = """
+        modify_system_prompt = f"""
         다음 조건들을 모두 만족하는 예시 문장을 만들어주세요.
         1 - 각 문장의 글자 수가 80자 이내로 총 6개의 문장을 작성해주세요.
         2 - 영어가 아닌 한글만 사용해주세요.
@@ -145,18 +156,77 @@ async def create_example_prompt(finance_category, level):
         5 - 문장들의 앞 뒤 문맥을 고려해서, 문장의 내용을 대학생 학생들이 겪을 만한 실제 상황을 예시에 포함해주세요.
         6 - 이 연령대의 학생들이 쉽게 이해할 수 있도록 간단한 용어를 사용하고, 재미있고 친근한 예시를 포함하세요.
         7 - 대상을 언급하지 마세요.
+        
+        기존 개념 적용 스크립트:
+        {original_conceptual_script}
+
+        사용자 수정 사항:
+        {new_prompt}
         """
     else:
         return "Invalid level"
 
+    modify_user_prompt = f"""
+    다음 동작을 수행하세요.
+    1 - 이전에 생성된 스크립트를 기반으로 {category}에 대한 내용을 추가적으로 설명하거나 수정해주세요.
+    2 - 사용자 수정사항을 기반으로 수정해주세요.
+    """
+
+    modify_api_url, modify_headers, modify_data = util_api(api_key, model, modify_system_prompt, modify_user_prompt)
+    modified_script = await call_api(modify_api_url, modify_headers, modify_data)
+
+    return modified_script
+
+
+#############################적용사례 ######################################
+
+async def create_case_prompt(finance_category):
+    system_prompt = """
+    다음 조건들을 모두 만족하는 문장을 만들어주세요.
+    1 - 각 문장의 글자 수가 80자 이내로 총 6개의 문장을 작성해주세요.
+    2 - 영어가 아닌 한글만 사용해주세요.
+    3 - 10대에게 이야기하듯이 작성해주세요.
+    4 - 온점은 오로지 문장이 끝났을 때만 사용해주세요.
+    5 - 문장들을 숫자로 구분하지 말고, 이어지게 문장들만 출력해주세요.
+    """
     user_prompt = f"""
     다음 동작을 수행하세요. 
     1 - {finance_category}에 대한 구체적인 실생활 예시를 들어주세요.
     """
+
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     return await call_api(api_url, headers, data)
 
 
+async def modify_case_prompt(original_case_scripts, new_prompt):
+    system_prompt = f"""
+    기존 개념 예시 스크립트를 다음과 같이 수정해 주세요.
+    1. 사용자 입력을 반영하여 스크립트의 일부분을 수정합니다.
+    2. 원래의 스크립트 형식과 일관성을 유지합니다.
+    3. 한국어로 작성해주세요.
+
+    기존 개념 적용 스크립트:
+    {original_case_scripts}
+
+    사용자 수정 사항:
+    {new_prompt}
+
+    수정된 스크립트를 아래 조건을 적용한 문장으로 작성해주세요:
+    1 - 각 문장의 글자 수가 80자 이내로 총 6개의 문장을 작성해주세요.
+    2 - 영어가 아닌 한글만 사용해주세요.
+    3 - 10대에게 이야기하듯이 작성해주세요.
+    4 - 온점은 오로지 문장이 끝났을 때만 사용해주세요.
+    5 - 문장들을 숫자로 구분하지 말고, 이어지게 문장들만 출력해주세요.
+    """
+
+    api_url, headers, data = util_api(api_key, model, system_prompt, new_prompt)
+
+    modify_case_script = await call_api(api_url, headers, data)
+    return modify_case_script
+
+
+def get_finance_category(level=None):
+    finance_categories = {}
 def get_finance_category():
     finance_categories = [
         #금융/경제 지표 및 통계
