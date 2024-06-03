@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.core.db import models, schemas
-from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking
+from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking, CaseScripts
 from passlib.hash import bcrypt
 
 
@@ -107,11 +107,7 @@ def create_script(db: Session, script_data):
     db.add(new_script)
     db.commit()
     db.refresh(new_script)
-    return new_script
-
-
-def get_script_by_id(db: Session, script_id: int):
-    return db.query(Scripts).filter(Scripts.scripts_id == script_id).first()
+    return new_script.scripts_id
 
 
 def update_script(db: Session, script_id: int, update_data):
@@ -136,6 +132,7 @@ def delete_script(db: Session, script_id: int):
 def get_scripts_by_category(db: Session, category_name: int):
     return db.query(Scripts).filter(Scripts.category_name == category_name).all()
 
+
 ###################################################################
 # Question
 def create_question(db: Session, question_data):
@@ -146,6 +143,7 @@ def create_question(db: Session, question_data):
         option_1=question_data['option_1'],
         option_2=question_data['option_2'],
         option_3=question_data['option_3'],
+        option_4=question_data['option_4'],
         plus_point=question_data['plus_point'],
         minus_point=question_data['minus_point']
     )
@@ -176,6 +174,55 @@ def update_question(db: Session, q_id: int, update_data):
         db.commit()
         return question
     return None
+
+
+###################################################################
+def create_case_script(db: Session, case_script_data):
+    new_case_script = CaseScripts(
+        scripts_id=case_script_data['scripts_id'],
+        content_1=case_script_data['content_1'],
+        content_2=case_script_data['content_2'],
+        content_3=case_script_data['content_3'],
+        content_4=case_script_data['content_4'],
+        content_5=case_script_data['content_5'],
+        content_6=case_script_data['content_6']
+    )
+    db.add(new_case_script)
+    db.commit()
+    db.refresh(new_case_script)
+    return new_case_script
+
+
+def get_case_script(db: Session, case_scripts_id: int):
+    return db.query(CaseScripts).filter(CaseScripts.case_scripts_id == case_scripts_id).first()
+
+
+def get_case_scripts_by_script_id(db: Session, scripts_id: int):
+    return db.query(CaseScripts).filter(CaseScripts.scripts_id == scripts_id).all()
+
+
+def update_case_script(db: Session, case_scripts_id: int, content: list):
+    case_script = db.query(CaseScripts).filter(CaseScripts.case_scripts_id == case_scripts_id).first()
+    if not case_script:
+        return None
+    case_script.content_1 = content[0] if len(content) > 0 else case_script.content_1
+    case_script.content_2 = content[1] if len(content) > 1 else case_script.content_2
+    case_script.content_3 = content[2] if len(content) > 2 else case_script.content_3
+    case_script.content_4 = content[3] if len(content) > 3 else case_script.content_4
+    case_script.content_5 = content[4] if len(content) > 4 else case_script.content_5
+    case_script.content_6 = content[5] if len(content) > 5 else case_script.content_6
+    db.commit()
+    db.refresh(case_script)
+    return case_script
+
+
+def delete_case_script(db: Session, case_scripts_id: int):
+    case_script = db.query(CaseScripts).filter(CaseScripts.case_scripts_id == case_scripts_id).first()
+    if not case_script:
+        return None
+    db.delete(case_script)
+    db.commit()
+    return case_script
 
 
 # # comment

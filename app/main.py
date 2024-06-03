@@ -7,7 +7,10 @@ from app.core.db.crud import get_user_by_email, update_user, update_user_points,
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate
 from passlib.context import CryptContext
 
-from app.core.prompt_image.createPrompt import create_prompt
+from app.core.problem.createProblem import create_problem
+from app.core.prompt_image.createImage import generate_images
+from app.core.prompt_image.createPrompt import create_prompt, create_case_prompt
+from app.core.video.createVideo import VideoCreator, ftp_directory
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -119,19 +122,68 @@ def read_script(scripts_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Script not found")
     return db_script
 
-@app.post("/create_prompt_and_save/")
-async def create_prompt_and_save(db: Session = Depends(get_db)):
-    parts, level, category = await create_prompt()
-    script_data = {
-        "level": 1,
-        "category_name": 1,
-        "content_1": parts[0],
-        "content_2": parts[1],
-        "content_3": parts[2],
-        "inspection_status": False
-    }
-    new_script = crud.create_script(db=db, script_data=script_data)
-    return new_script
+
+@app.post("/create_content/")
+async def create_content(db: Session = Depends(get_db)):
+    try:
+        parts, level, category = await create_prompt()
+        conceptual_script_data = {
+            "level": 1,
+            "category_name": 1,  # 수정
+            "content_1": parts[0],
+            "content_2": parts[1],
+            "content_3": parts[2],
+            "inspection_status": False
+        }
+        script_id = crud.create_script(db=db, script_data=conceptual_script_data)
+        print(script_id)
+        case_script_split = await create_case_prompt(category)
+        case_script_data = {
+            "scripts_id": script_id,
+            "content_1": case_script_split[0] if len(case_script_split) > 0 else None,
+            "content_2": case_script_split[1] if len(case_script_split) > 1 else None,
+            "content_3": case_script_split[2] if len(case_script_split) > 2 else None,
+            "content_4": case_script_split[3] if len(case_script_split) > 3 else None,
+            "content_5": case_script_split[4] if len(case_script_split) > 4 else None,
+            "content_6": case_script_split[5] if len(case_script_split) > 5 else None,
+        }
+        case_script = crud.create_case_script(db, case_script_data=case_script_data)
+
+        clips_info = []
+        await generate_images(case_script_split, clips_info)
+        video_creator = VideoCreator(clips_info, ftp_directory)
+        shortform_video = await video_creator.create_video()
+        shortform_name = video_creator.get_detail_name()
+
+        shortform = {
+            "scripts_id": script_id,
+            "form_url": shortform_name
+        }
+        shortform_content = crud.create_shortform(db, shortform_data=shortform)
+
+        combined_conceptual_script = " ".join(parts)
+        combined_case_script = " ".join(case_script_split)
+
+        problem_parts = await create_problem(combined_conceptual_script, combined_case_script, level)
+        problem_data = {
+            "scripts_id": script_id,
+            "plus_point": problem_parts["plus_point"],
+            "minus_point": problem_parts["minus_point"],
+            "question": problem_parts["문제"],
+            "option_1": problem_parts["보기"][1],
+            "option_2": problem_parts["보기"][2],
+            "option_3": problem_parts["보기"][3],
+            "option_4": problem_parts["보기"][4],
+            "answer_option": problem_parts["정답"],  # 정답 번호
+            "explanation": problem_parts["해설"]
+        }
+        problem_content = crud.create_question(db, question_data=problem_data)
+
+        return {"message": "Content created successfully"}
+
+    except Exception as e:
+        return {"error": str(e)}
+
 
 if __name__ == "__main__":
     import uvicorn
