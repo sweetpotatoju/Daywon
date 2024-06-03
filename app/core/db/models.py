@@ -39,7 +39,7 @@ class Ranking(Base):
 
 class Scripts(Base):
     __tablename__ = "scripts"
-    scripts_id = Column(Integer, primary_key=True, index=True)
+    scripts_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     level = Column(Integer, index=True)
     category_name = Column(Integer)
     inspection_status = Column(Boolean,default=False)
@@ -47,19 +47,34 @@ class Scripts(Base):
     content_2 = Column(String)
     content_3 = Column(String)
 
+
     histories = relationship("History", back_populates="scripts")
     questions = relationship("Question", back_populates="scripts")
     shortform = relationship("Shortform", back_populates="scripts")
     admins = relationship("Admin", back_populates="scripts")
 
+class CaseScripts(Base):
+    __tablename__ = "caseScripts"
+    case_scripts_id = Column(Integer, primary_key=True, index=True)
+    scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
+    content_1 = Column(String)
+    content_2 = Column(String)
+    content_3 = Column(String)
+    content_4 = Column(String)
+    content_5 = Column(String)
+    content_6 = Column(String)
+
+    shortform = relationship("Shortform", back_populates="caseScripts")
 
 class Shortform(Base):
     __tablename__ = "shortform"
     form_id = Column(Integer, primary_key=True, index=True)
     form_url = Column(String, index=True)
     scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
-    scripts = relationship("Scripts", back_populates="shortform")
+    case_scripts_id = Column(Integer, ForeignKey("caseScripts.case_scripts_id"))
 
+    scripts = relationship("Scripts", back_populates="shortform")
+    caseScripts = relationship("CaseScripts", back_populates="shortform")
 
 class Question(Base):
     __tablename__ = "question"

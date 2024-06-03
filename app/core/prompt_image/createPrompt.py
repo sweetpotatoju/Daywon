@@ -70,7 +70,8 @@ async def create_prompt():
 
     # return await call_api(api_url, headers, data)
 
-    conceptual_script = await call_api(api_url, headers, data)
+    conceptual_script_data = await call_api(api_url, headers, data)
+    conceptual_script = split_script_by_length(conceptual_script_data)
     return conceptual_script, level, category
 
 
@@ -178,7 +179,9 @@ async def create_case_prompt(finance_category):
     """
 
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
-    return await call_api(api_url, headers, data)
+    case_script_data = await call_api(api_url, headers, data)
+    case_script_split = split_text(case_script_data)
+    return case_script_split
 
 
 async def modify_case_prompt(original_case_scripts, new_prompt):
@@ -266,3 +269,17 @@ def split_text(text):
     # 결과가 빈 문자열이 아닌 경우에만 리스트에 추가
     sentences = [sentence.strip() + '.' for sentence in sentences if sentence.strip()]
     return sentences
+
+
+def split_script_by_length(script, num_parts=3):
+    length = len(script)
+    part_size = length // num_parts
+    parts = []
+
+    for i in range(num_parts):
+        start = i * part_size
+        # 마지막 부분은 나머지 문장을 모두 포함
+        end = (i + 1) * part_size if i != num_parts - 1 else length
+        parts.append(script[start:end].strip())
+
+    return parts

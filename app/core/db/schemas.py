@@ -119,6 +119,30 @@ class QuestionUpdate(BaseModel):
     option_4: Optional[str] = None
 
 
+class CaseScriptsBase(BaseModel):
+    content_1: Optional[str]
+    content_2: Optional[str]
+    content_3: Optional[str]
+    content_4: Optional[str]
+    content_5: Optional[str]
+    content_6: Optional[str]
+
+
+class CaseScriptsCreate(CaseScriptsBase):
+    scripts_id: int
+
+
+class CaseScriptsUpdate(CaseScriptsBase):
+    pass
+
+
+class CaseScripts(CaseScriptsBase):
+    case_scripts_id: int
+
+    class Config:
+        orm_mode = True
+
+
 class CommentBase(BaseModel):
     q_id: int
     comment_1: str
