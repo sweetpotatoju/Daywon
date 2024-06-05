@@ -53,10 +53,10 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
 
 
 class VideoCreator:
-    def __init__(self, clips_info, ftp_directory):
+    def __init__(self, clips_info, ftp_directory, video_file_name):
         self.clips_info = clips_info
         self.video_name = 'completed_video'
-        self.video_detail_name= ''
+        self.video_detail_name = ''
         self.font = 'NanumGothic'
         self.fontsize = 60
         self.color = 'black'
@@ -65,7 +65,7 @@ class VideoCreator:
         self.audio_folder = 'audio'
         self.video_folder = 'completed_video'
         self.ensure_folders_exists()
-        self.video_path = self.create_video_file_name()
+        self.video_path = self.create_video_file_name(video_file_name)
         self.ftp_directory = ftp_directory
 
     def ensure_folders_exists(self):
@@ -73,23 +73,10 @@ class VideoCreator:
         os.makedirs(self.audio_folder, exist_ok=True)
         os.makedirs(self.video_folder, exist_ok=True)
 
-    def create_video_file_name(self):
-        """저장할 비디오 파일의 이름을 중복되지 않게 생성"""
-        video_path = Path(__file__).parent / f"{self.video_folder}"
-        if os.path.exists(video_path):
-            print("비디오 경로 있음 : ", video_path)
-        video_path.mkdir(parents=True, exist_ok=True)
-        count = 1
-        while True:
-            video_path = Path(__file__).parent / f"{self.video_folder}/{self.video_name}_{count}.mp4"
-            video_path_str = str(video_path)
-            if not os.path.exists(video_path):
-                self.video_detail_name = f"{self.video_name}_{count}.mp4"
-                return video_path_str
-            count += 1
-
-    def get_detail_name(self):
-        return self.video_detail_name
+    def create_video_file_name(self, video_file_name=None):
+        """비디오 재생성 시 이름 덮어 씌우기"""
+        if video_file_name:
+            return video_file_name
 
     async def create_video(self):
         clips = []
@@ -127,16 +114,12 @@ class VideoCreator:
         # 최종 비디오 파일 생성
         final_clip.write_videofile(self.video_path, fps=30, codec='libx264', audio_codec='aac')
 
-
         remote_directory = '/video'
         # 비디오 파일을 FTP 서버에 업로드
-        upload_file_to_ftp(self.video_path,remote_directory)
+        upload_file_to_ftp(self.video_path, remote_directory)
 
         # 사용된 파일 삭제
         for file_path in used_files:
             if os.path.exists(file_path):
                 os.remove(file_path)
                 print(f"Deleted {file_path}")
-
-
-

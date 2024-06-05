@@ -54,7 +54,7 @@ class UserUpdate(BaseModel):
 ############################################
 class ScriptsBase(BaseModel):
     level: int
-    category_name: int
+    category_label: int
     content_1: str
     content_2: str
     content_3: str
@@ -72,6 +72,10 @@ class ScriptsUpdate(ScriptsBase):
     pass
 
 
+class ModifyScriptRequest(BaseModel):
+    new_prompt: str
+
+
 class ShortformBase(BaseModel):
     form_url: str
     scripts_id: int
@@ -87,6 +91,30 @@ class ShortformRead(ShortformBase):
 
 class ShortformUpdate(BaseModel):
     form_url: Optional[str] = None
+
+
+class CategoryBase(BaseModel):
+    content: str
+    label: int
+
+
+class CategoryCreate(CategoryBase):
+    pass
+
+
+class CategoryUpdate(CategoryBase):
+    pass
+
+
+class CategoryInDBBase(CategoryBase):
+    category_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class Category(CategoryInDBBase):
+    pass
 
 
 #################################################################

@@ -31,13 +31,14 @@ def upload_file_to_ftp(local_file_path, remote_directory):
             ftp.retrlines('LIST')
             with open(local_file_path, 'rb') as file:
                 ftp.storbinary(f'STOR {os.path.basename(local_file_path)}', file)
-    except ftplib.error_perm as e:
-        print(f"Permission error: {e}")
-    except ftplib.error_temp as e:
-        print(f"Temporary error: {e}")
-    except ftplib.all_errors as e:
-        print(f"FTP error: {e}")
 
+        # 업로드가 성공하면 로컬 파일 삭제
+        os.remove(local_file_path)
+        print(f"File {local_file_path} uploaded and removed locally.")
+    except PermissionError as e:
+        print(f"PermissionError: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
 def read_file_from_ftp(remote_directory):
     try:
