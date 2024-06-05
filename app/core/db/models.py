@@ -130,6 +130,7 @@ class History(Base):
     user_id = Column(Integer, ForeignKey("users.user_id"))
     scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
     T_F = Column(Boolean)
-    users = relationship("User", back_populates="histories")
+    time = Column(Integer,default=0)
 
+    users = relationship("User", back_populates="histories")
     scripts = relationship("Scripts", back_populates="histories")

@@ -214,7 +214,6 @@ class HistoryBase(BaseModel):
     scripts_id: int
     T_F: bool
 
-
 class HistoryCreate(HistoryBase):
     pass
 

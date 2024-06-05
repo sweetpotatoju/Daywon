@@ -188,8 +188,9 @@ def get_category_by_content(db: Session, content: str):
 def get_categories(db: Session, skip: int = 0, limit: int = 10):
     return db.query(Category).offset(skip).limit(limit).all()
 
+
 def get_cotegory_name_by_category_id(db: Session, category_id: int):
-    all_db=db.query(Category).filter(Category.category_id == category_id).first()
+    all_db = db.query(Category).filter(Category.category_id == category_id).first()
 
     return all_db.content
 
@@ -338,9 +339,12 @@ def get_shortform_by_id(db: Session, form_id: int):
 def get_shortform_by_scripts_id(db: Session, scripts_id: int):
     return db.query(Shortform).filter(Shortform.scripts_id == scripts_id).first()
 
+
 # 가장 최근에 추가된 shortform 데이터를 읽어오는 함수
 def get_latest_shortform(db):
     return db.query(Shortform).order_by(desc(Shortform.form_id)).first()
+
+
 # admin
 
 def create_admin(db: Session, admin_data):
@@ -364,17 +368,30 @@ def delete_admin(db: Session, admin_id: int):
 
 # history
 
-def log_history(db: Session, history_data):
-    history = History(
-        user_id=history_data['user_id'],
-        scripts_id=history_data['scripts_id'],
-        T_F=history_data['T_F']
-    )
-    db.add(history)
+def create_user_history(db: Session, user_id: int, script_id: int, T_F: bool):
+    user_history = History(user_id=user_id, script_id=script_id, T_F=T_F)
+    db.add(user_history)
     db.commit()
-    db.refresh(history)
-    return history
+    db.refresh(user_history)
+    return user_history
 
+
+def update_user_history(db: Session, user_id: int, script_id: int):
+    user_history = db.query(History).filter(History.user_id == user_id, History.script_id == script_id).first()
+    if user_history:
+        user_history.time += 1
+        if user_history.time == 3:
+            user_history.T_F = True
+        db.commit()
+        db.refresh(user_history)
+    return user_history
+
+
+def get_user_history(db: Session, user_id: int, T_F: bool = None):
+    query = db.query(History).filter(History.user_id == user_id)
+    if T_F is not None:
+        query = query.filter(History.T_F == T_F)
+    return query.all()
 
 # ranking
 

@@ -123,6 +123,28 @@ def get_user_ranking(user_id: int, db: Session = Depends(get_db)):
     }
 
 
+@app.post("/user_history/")
+def create_user_history(user_id: int, script_id: int, T_F: bool, db: Session = Depends(get_db)):
+    crud.create_user_history(db, user_id=user_id, script_id=script_id, T_F=T_F)
+    return {"success"}
+
+
+@app.put("/user_update_history/")
+def update_user_history(user_id: int, scripts_id: int, T_F: bool, db: Session = Depends(get_db)):
+    crud.update_user_history(db, user_id=user_id, script_id=scripts_id, T_F=T_F)
+    return {"success"}
+
+
+
+@app.get("/get_user_history/{user_id}")
+def get_user__history(user_id: int, T_F: bool, db: Session = Depends(get_db)):
+    user_history = crud.get_user_history(db, user_id=user_id, T_F=T_F)
+    if not user_history:
+        raise HTTPException(status_code=404, detail="User history not found")
+    return user_history
+
+#################################################
+
 @app.get("/scripts_read/{scripts_id}")
 def read_script(scripts_id: int, db: Session = Depends(get_db)):
     db_script = crud.get_script(db, scripts_id=scripts_id)
@@ -176,7 +198,7 @@ async def create_content(db: Session = Depends(get_db)):
 
         clips_info = []
         await generate_images(case_script_split, clips_info)
-        video_creator = VideoCreator(clips_info, ftp_directory,new_filename)
+        video_creator = VideoCreator(clips_info, ftp_directory, new_filename)
         await video_creator.create_video()
         shortform_name = new_filename
 
@@ -312,7 +334,7 @@ async def modify_case_scripts(scripts_id: int, request: ModifyScriptRequest, db:
         "content_6": modified_case_script_split[5] if len(modified_case_script_split) > 5 else None,
     }
 
-    updated_case_script = crud.update_case_script(db,scripts_id, new_update_case_data)
+    updated_case_script = crud.update_case_script(db, scripts_id, new_update_case_data)
     if not updated_case_script:
         raise HTTPException(status_code=500, detail="Failed to update case script")
     clips_info = []
