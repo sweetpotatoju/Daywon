@@ -97,8 +97,7 @@ class VideoCreator:
             clip = ImageClip(path, duration=duration)
             img_width, img_height = clip.size
             txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, font=self.font, method='label')
-            txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(
-                duration)
+            txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(duration)
 
             # 이미지와 자막을 합성하여 비디오 클립 생성
             video = CompositeVideoClip([clip, txt_clip]).set_audio(audio_clip)
@@ -108,11 +107,20 @@ class VideoCreator:
             used_files.append(path)  # 이미지 파일 경로 추가
             used_files.append(audio_path)  # 오디오 파일 경로 추가
 
+            # 클립 닫기
+            audio_clip.close()
+            clip.close()
+            txt_clip.close()
+            video.close()
+
         # 모든 클립 연결
         final_clip = concatenate_videoclips(clips, method="compose")
 
         # 최종 비디오 파일 생성
         final_clip.write_videofile(self.video_path, fps=30, codec='libx264', audio_codec='aac')
+
+        # 최종 클립 닫기
+        final_clip.close()
 
         remote_directory = '/video'
         # 비디오 파일을 FTP 서버에 업로드
