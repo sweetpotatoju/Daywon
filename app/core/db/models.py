@@ -1,4 +1,3 @@
-
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from app.core.db.base import Base
@@ -18,7 +17,8 @@ class User(Base):
 
     histories = relationship("History", back_populates="users")
     rankings = relationship("Ranking", back_populates="users")
-    profile_images=relationship("Profile_images")
+    profile_images = relationship("Profile_images")
+
 
 class Profile_images(Base):
     __tablename__ = "profile_images"
@@ -41,17 +41,18 @@ class Scripts(Base):
     __tablename__ = "scripts"
     scripts_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     level = Column(Integer, index=True)
-    category_name = Column(Integer)
-    inspection_status = Column(Boolean,default=False)
+    category_id = Column(Integer, ForeignKey("categories.category_id"))
+    inspection_status = Column(Boolean, default=False)
     content_1 = Column(String)
     content_2 = Column(String)
     content_3 = Column(String)
-
 
     histories = relationship("History", back_populates="scripts")
     questions = relationship("Question", back_populates="scripts")
     shortform = relationship("Shortform", back_populates="scripts")
     admins = relationship("Admin", back_populates="scripts")
+    categories = relationship("Category", back_populates="scripts")
+
 
 class CaseScripts(Base):
     __tablename__ = "caseScripts"
@@ -66,6 +67,16 @@ class CaseScripts(Base):
 
     shortform = relationship("Shortform", back_populates="caseScripts")
 
+
+class Category(Base):
+    __tablename__ = "categories"
+    category_id = Column(Integer, primary_key=True, index=True)
+    content = Column(String)
+    label = Column(Integer)  # label is not unique
+
+    scripts = relationship("Scripts", back_populates="categories")
+
+
 class Shortform(Base):
     __tablename__ = "shortform"
     form_id = Column(Integer, primary_key=True, index=True)
@@ -75,6 +86,7 @@ class Shortform(Base):
 
     scripts = relationship("Scripts", back_populates="shortform")
     caseScripts = relationship("CaseScripts", back_populates="shortform")
+
 
 class Question(Base):
     __tablename__ = "question"
@@ -121,6 +133,3 @@ class History(Base):
     users = relationship("User", back_populates="histories")
 
     scripts = relationship("Scripts", back_populates="histories")
-
-
-

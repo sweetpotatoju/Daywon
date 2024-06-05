@@ -53,10 +53,10 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
 
 
 class VideoCreator:
-    def __init__(self, clips_info, ftp_directory):
+    def __init__(self, clips_info, ftp_directory, video_file_name):
         self.clips_info = clips_info
         self.video_name = 'completed_video'
-        self.video_detail_name= ''
+        self.video_detail_name = ''
         self.font = 'NanumGothic'
         self.fontsize = 60
         self.color = 'black'
@@ -65,7 +65,7 @@ class VideoCreator:
         self.audio_folder = 'audio'
         self.video_folder = 'completed_video'
         self.ensure_folders_exists()
-        self.video_path = self.create_video_file_name()
+        self.video_path = self.create_video_file_name(video_file_name)
         self.ftp_directory = ftp_directory
 
     def ensure_folders_exists(self):
@@ -73,23 +73,10 @@ class VideoCreator:
         os.makedirs(self.audio_folder, exist_ok=True)
         os.makedirs(self.video_folder, exist_ok=True)
 
-    def create_video_file_name(self):
-        """저장할 비디오 파일의 이름을 중복되지 않게 생성"""
-        video_path = Path(__file__).parent / f"{self.video_folder}"
-        if os.path.exists(video_path):
-            print("비디오 경로 있음 : ", video_path)
-        video_path.mkdir(parents=True, exist_ok=True)
-        count = 1
-        while True:
-            video_path = Path(__file__).parent / f"{self.video_folder}/{self.video_name}_{count}.mp4"
-            video_path_str = str(video_path)
-            if not os.path.exists(video_path):
-                self.video_detail_name = f"{self.video_name}_{count}.mp4"
-                return video_path_str
-            count += 1
-
-    def get_detail_name(self):
-        return self.video_detail_name
+    def create_video_file_name(self, video_file_name=None):
+        """비디오 재생성 시 이름 덮어 씌우기"""
+        if video_file_name:
+            return video_file_name
 
     async def create_video(self):
         clips = []
@@ -110,8 +97,7 @@ class VideoCreator:
             clip = ImageClip(path, duration=duration)
             img_width, img_height = clip.size
             txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, font=self.font, method='label')
-            txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(
-                duration)
+            txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(duration)
 
             # 이미지와 자막을 합성하여 비디오 클립 생성
             video = CompositeVideoClip([clip, txt_clip]).set_audio(audio_clip)
@@ -121,22 +107,27 @@ class VideoCreator:
             used_files.append(path)  # 이미지 파일 경로 추가
             used_files.append(audio_path)  # 오디오 파일 경로 추가
 
+            # 클립 닫기
+            audio_clip.close()
+            clip.close()
+            txt_clip.close()
+            video.close()
+
         # 모든 클립 연결
         final_clip = concatenate_videoclips(clips, method="compose")
 
         # 최종 비디오 파일 생성
         final_clip.write_videofile(self.video_path, fps=30, codec='libx264', audio_codec='aac')
 
+        # 최종 클립 닫기
+        final_clip.close()
 
         remote_directory = '/video'
         # 비디오 파일을 FTP 서버에 업로드
-        upload_file_to_ftp(self.video_path,remote_directory)
+        upload_file_to_ftp(self.video_path, remote_directory)
 
         # 사용된 파일 삭제
         for file_path in used_files:
             if os.path.exists(file_path):
                 os.remove(file_path)
                 print(f"Deleted {file_path}")
-
-
-
