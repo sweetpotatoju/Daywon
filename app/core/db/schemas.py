@@ -2,6 +2,11 @@ from pydantic import BaseModel
 from typing import Optional
 
 
+class CreateContentRequest(BaseModel):
+    label: int
+    level: int
+
+
 class UserBase(BaseModel):
     name: str
     nickname: str
@@ -212,6 +217,7 @@ class AdminUpdate(BaseModel):
     password: str = None
     admin_name: str = None
     qualification_level: int = None
+
 
 class AdminLogin(BaseModel):
     admin_id: int
