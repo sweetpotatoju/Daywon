@@ -1,9 +1,5 @@
-
-from fastapi import HTTPException, Form, Depends, Request, Response, Depends
+from fastapi import HTTPException, Form, Depends
 import os
-from random import random
-from fastapi.templating import Jinja2Templates
-from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 import re
 
@@ -38,7 +34,7 @@ app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 print(f"Templates directory: {templates_dir}")  # 디버깅: 템플릿 디렉토리 경로 출력
-templates = Jinja2Templates(directory=templates_dir)
+templates = Jinja2Templates(directory="templates")
 
 @app.get("/admin_login", response_class=HTMLResponse)
 async def admin_login_web(request: Request):

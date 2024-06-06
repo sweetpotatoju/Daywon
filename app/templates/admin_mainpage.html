@@ -147,6 +147,18 @@
         if (userLevel < 3) {
             manageAccountBtn.style.display = 'none';
         }
+
+       // 디버깅을 위한 콘솔 출력
+        console.log('JavaScript 파일이 로드되었습니다.');
+
+        // 버튼 클릭 시 페이지 이동
+        createQuestionBtn.addEventListener('click', function() {
+            console.log('문제 생성 버튼 클릭됨');
+            window.location.href = '/read_create_content/';
+        });
+
+
+
     </script>
 </body>
 </html>
