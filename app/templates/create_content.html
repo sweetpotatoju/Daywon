@@ -99,6 +99,18 @@
         .submit-button:hover {
             background-color: #1565C0;
         }
+        .loading-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 18px;
+            border-radius: 8px;
+        }
         @media (max-width: 768px) {
             .buttons button {
                 width: 80px;
@@ -143,6 +155,8 @@
         <button class="submit-button">문제 생성하기</button>
     </div>
 
+    <div class="loading-message" id="loading-message">문제 생성중...</div>
+
     <script>
         function handleButtonClick(event) {
             const buttons = event.currentTarget.parentElement.querySelectorAll('button');
@@ -167,25 +181,44 @@
                 return;
             }
 
+            if (!confirm('문제를 생성하시겠습니까?')) {
+                return;
+            }
+
             const category = parseInt(activeCategoryButton.getAttribute('data-value'));
             const level = parseInt(activeLevelButton.getAttribute('data-value'));
 
             // 콘솔에 전송되는 값 출력
             console.log('전송되는 값:', { category, level });
 
-            const response = await fetch('/generate-question/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ category, level })
-            });
+            // "문제 생성중" 메시지 표시
+            const loadingMessage = document.getElementById('loading-message');
+            loadingMessage.style.display = 'block';
 
-            if (response.ok) {
-                const data = await response.json();
-                alert(`카테고리: ${data.category}, 레벨: ${data.level}의 문제가 생성되었습니다.`);
-            } else {
-                alert('문제 생성에 실패했습니다.');
+            try {
+                const response = await fetch('/create_content/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ label: category, level: level }) // JSON.stringify 사용
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('서버로부터 받은 데이터:', data); // 디버깅용 콘솔 출력
+                    alert(`카테고리: ${data.category}, 레벨: ${data.level}의 문제가 생성되었습니다.`);
+                } else {
+                    const errorData = await response.json();
+                    console.error('문제 생성 실패:', errorData);
+                    alert(`문제 생성에 실패했습니다: ${errorData.detail}`);
+                }
+            } catch (error) {
+                console.error('요청 중 오류 발생:', error);
+                alert('요청 중 오류가 발생했습니다.');
+            } finally {
+                // "문제 생성중" 메시지 숨기기
+                loadingMessage.style.display = 'none';
             }
         });
     </script>
