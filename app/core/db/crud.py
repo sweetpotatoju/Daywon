@@ -350,6 +350,8 @@ def get_admin_by_admin_name(db: Session, admin_name: str):
     return db.query(Admin).filter(Admin.admin_name == admin_name).first()
 
 
+
+
 def create_admin(db: Session, admin_data: dict, admin_id: int, pwd_context):
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin and admin.qualification_level == 3:

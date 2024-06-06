@@ -213,8 +213,9 @@ class AdminUpdate(BaseModel):
     admin_name: str = None
     qualification_level: int = None
 
+
 class AdminLogin(BaseModel):
-    admin_id: int
+    admin_name: str
     password: str
 
 
