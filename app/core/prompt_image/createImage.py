@@ -9,6 +9,7 @@ import os
 async def generate_images(prompt, clips_info):
     api_key = get_api_key()
     client = openai.OpenAI(api_key=api_key)
+    print(prompt)
 
     # 각 프롬프트에 대해 이미지 생성 요청
     for i, prompt in enumerate(prompt):

@@ -51,9 +51,10 @@ class UserUpdate(BaseModel):
     profile_image: Optional[int] = None
 
 
+############################################
 class ScriptsBase(BaseModel):
     level: int
-    category_name: str
+    category_label: int
     content_1: str
     content_2: str
     content_3: str
@@ -69,6 +70,10 @@ class ScriptsRead(ScriptsBase):
 
 class ScriptsUpdate(ScriptsBase):
     pass
+
+
+class ModifyScriptRequest(BaseModel):
+    new_prompt: str
 
 
 class ShortformBase(BaseModel):
@@ -88,15 +93,41 @@ class ShortformUpdate(BaseModel):
     form_url: Optional[str] = None
 
 
+class CategoryBase(BaseModel):
+    content: str
+    label: int
+
+
+class CategoryCreate(CategoryBase):
+    pass
+
+
+class CategoryUpdate(CategoryBase):
+    pass
+
+
+class CategoryInDBBase(CategoryBase):
+    category_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class Category(CategoryInDBBase):
+    pass
+
+
+#################################################################
 class QuestionBase(BaseModel):
     scripts_id: int
     answer_option: int
-    question: int
+    question: str
     option_1: str
     option_2: str
     option_3: str
-    plus_point: str
-    minus_point: str
+    option_4: str
+    plus_point: int
+    minus_point: int
 
 
 class QuestionCreate(QuestionBase):
@@ -109,12 +140,35 @@ class QuestionRead(QuestionBase):
 
 class QuestionUpdate(BaseModel):
     answer_option: Optional[int] = None
-    question: Optional[int] = None
+    question: Optional[str] = None
     option_1: Optional[str] = None
     option_2: Optional[str] = None
     option_3: Optional[str] = None
-    plus_point: Optional[str] = None
-    minus_point: Optional[str] = None
+    option_4: Optional[str] = None
+
+
+class CaseScriptsBase(BaseModel):
+    content_1: Optional[str]
+    content_2: Optional[str]
+    content_3: Optional[str]
+    content_4: Optional[str]
+    content_5: Optional[str]
+    content_6: Optional[str]
+
+
+class CaseScriptsCreate(CaseScriptsBase):
+    scripts_id: int
+
+
+class CaseScriptsUpdate(CaseScriptsBase):
+    pass
+
+
+class CaseScripts(CaseScriptsBase):
+    case_scripts_id: int
+
+    class Config:
+        orm_mode = True
 
 
 class CommentBase(BaseModel):
@@ -136,6 +190,7 @@ class CommentUpdate(BaseModel):
     comment_1: Optional[str] = None
     comment_2: Optional[str] = None
     comment_3: Optional[str] = None
+    comment_4: Optional[str] = None
 
 
 class AdminBase(BaseModel):
