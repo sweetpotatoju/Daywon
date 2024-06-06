@@ -50,7 +50,6 @@ class Scripts(Base):
     histories = relationship("History", back_populates="scripts")
     questions = relationship("Question", back_populates="scripts")
     shortform = relationship("Shortform", back_populates="scripts")
-    admins = relationship("Admin", back_populates="scripts")
     categories = relationship("Category", back_populates="scripts")
 
 
@@ -120,8 +119,8 @@ class Admin(Base):
     __tablename__ = "admin"
     admin_id = Column(Integer, primary_key=True, index=True)
     password = Column(String)
-    scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
-    scripts = relationship("Scripts", back_populates="admins")
+    qualification_level=Column(Integer)
+
 
 
 class History(Base):
