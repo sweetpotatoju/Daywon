@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문제 생성</title>
+    <title>학습 콘텐츠 생성</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: white; /* 전체 배경을 흰색으로 설정 */
+            background-color: white;
             margin: 0;
-            padding: 20px; /* 모니터 테두리와 요소 사이에 약간의 패딩 추가 */
-            box-sizing: border-box; /* 패딩 포함 박스 모델 설정 */
-            min-height: 100vh; /* 최소 높이를 100vh로 설정 */
+            padding: 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column; /* 세로로 정렬 */
-            align-items: center; /* 가로 중심 정렬 */
+            flex-direction: column;
+            align-items: center;
         }
         .container {
             width: 100%;
@@ -24,7 +24,7 @@
             padding: 20px;
             box-sizing: border-box;
             text-align: center;
-            background-color: #ECEFF1; /* 컨테이너 배경을 흰색보다 약간 어두운 색으로 설정 */
+            background-color: #ECEFF1;
         }
         .title {
             font-size: 24px;
@@ -121,9 +121,9 @@
                 <span class="blue-dot"></span>카테고리
             </div>
             <div class="buttons category-buttons">
-                <button>세금</button>
-                <button>자산 관리</button>
-                <button>금융 시사 상식</button>
+                <button data-value="1">세금</button>
+                <button data-value="2">자산 관리</button>
+                <button data-value="3">금융 시사 상식</button>
             </div>
         </div>
 
@@ -132,11 +132,11 @@
                 <span class="blue-dot"></span>레벨
             </div>
             <div class="buttons level-buttons">
-                <button>1</button>
-                <button>2</button>
-                <button>3</button>
-                <button>4</button>
-                <button>5</button>
+                <button data-value="1">1</button>
+                <button data-value="2">2</button>
+                <button data-value="3">3</button>
+                <button data-value="4">4</button>
+                <button data-value="5">5</button>
             </div>
         </div>
 
@@ -144,21 +144,49 @@
     </div>
 
     <script>
-        // Function to handle button click and change color
         function handleButtonClick(event) {
             const buttons = event.currentTarget.parentElement.querySelectorAll('button');
             buttons.forEach(button => button.classList.remove('active'));
             event.currentTarget.classList.add('active');
         }
 
-        // Add click event listeners to all category buttons
         document.querySelectorAll('.category-buttons button').forEach(button => {
             button.addEventListener('click', handleButtonClick);
         });
 
-        // Add click event listeners to all level buttons
         document.querySelectorAll('.level-buttons button').forEach(button => {
             button.addEventListener('click', handleButtonClick);
+        });
+
+        document.querySelector('.submit-button').addEventListener('click', async () => {
+            const activeCategoryButton = document.querySelector('.category-buttons .active');
+            const activeLevelButton = document.querySelector('.level-buttons .active');
+
+            if (!activeCategoryButton || !activeLevelButton) {
+                alert('카테고리와 레벨을 선택해주세요.');
+                return;
+            }
+
+            const category = parseInt(activeCategoryButton.getAttribute('data-value'));
+            const level = parseInt(activeLevelButton.getAttribute('data-value'));
+
+            // 콘솔에 전송되는 값 출력
+            console.log('전송되는 값:', { category, level });
+
+            const response = await fetch('/generate-question/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ category, level })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(`카테고리: ${data.category}, 레벨: ${data.level}의 문제가 생성되었습니다.`);
+            } else {
+                alert('문제 생성에 실패했습니다.');
+            }
         });
     </script>
 </body>

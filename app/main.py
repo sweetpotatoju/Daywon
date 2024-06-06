@@ -28,8 +28,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
 
-templates = Jinja2Templates(directory="templates")
-
 # Dependency(DB 접근 함수)
 def get_db():
     db = SessionLocal()
@@ -38,22 +36,6 @@ def get_db():
     finally:
         db.close()
 
-
-@app.get("/")
-def read_root(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
-
-
-@app.post("/login")
-def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    # 로그인 로직을 임시로 주석 처리
-    # user = db.query(models.User).filter(models.User.username == username).first()
-    # if user is None or not pwd_context.verify(password, user.password):
-    #     raise HTTPException(status_code=400, detail="Invalid credentials")
-    # return RedirectResponse(url="/dashboard", status_code=303)
-
-    # 로그인 페이지를 다시 반환
-    return templates.TemplateResponse("login.html", {"request": request})
 
 # 유저 생성
 # 프론트앤드에서 오류가 낫을때, 필드의 값을 대채워달라는 메시지 표시(422 Unprocessable Entity 응답일때)

@@ -119,7 +119,6 @@ class Admin(Base):
     admin_id = Column(Integer, primary_key=True, index=True)
     admin_name=Column(String)
     password = Column(String)
-    admin_name = Column(String)
     qualification_level = Column(Integer)
 
 
