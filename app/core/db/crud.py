@@ -5,7 +5,6 @@ from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ran
 from passlib.hash import bcrypt
 
 from app.core.db.schemas import CategoryCreate, CategoryUpdate
-from app.main import pwd_context
 
 
 def create_user(db: Session, user_create: schemas.UserCreate):
@@ -351,7 +350,7 @@ def get_admin_by_admin_name(db: Session, admin_name: str):
     return db.query(Admin).filter(Admin.admin_name == admin_name).first()
 
 
-def create_admin(db: Session, admin_data: dict, admin_id: int):
+def create_admin(db: Session, admin_data: dict, admin_id: int, pwd_context):
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin and admin.qualification_level == 3:
         hashed_password = pwd_context.hash(admin_data['password'])
@@ -366,6 +365,7 @@ def create_admin(db: Session, admin_data: dict, admin_id: int):
         return new_admin
     return False
 
+
 def delete_admin_if_level_3(db: Session, admin_id: int):
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin and admin.qualification_level == 3:
@@ -374,26 +374,24 @@ def delete_admin_if_level_3(db: Session, admin_id: int):
         return True
     return False
 
+
 def get_admin_level(db: Session, admin_id: int):
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin:
         return admin.qualification_level
     return None
 
+
 def update_admin(db: Session, admin_data: dict):
     admin_id = admin_data.get("admin_id")
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin:
-        if "password" in admin_data and admin_data["password"]:
-            admin.password = pwd_context.hash(admin_data["password"])
-        if "admin_name" in admin_data and admin_data["admin_name"]:
-            admin.admin_name = admin_data["admin_name"]
         if "qualification_level" in admin_data:
             admin.qualification_level = admin_data["qualification_level"]
 
-        db.commit()
-        db.refresh(admin)
-        return admin
+            db.commit()
+            db.refresh(admin)
+            return admin
     return None
 
 

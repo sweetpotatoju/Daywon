@@ -425,7 +425,7 @@ async def modify_problem(scripts_id: int, request: ModifyScriptRequest, db: Sess
 # admin
 @app.post("/admins/create/{admin_id}")
 def create_admin(admin_id: int, admin_data: AdminCreate, db: Session = Depends(get_db)):
-    new_admin = crud.create_admin(db, admin_data.dict(), admin_id)
+    new_admin = crud.create_admin(db, admin_data.dict(), admin_id, pwd_context)
     if not new_admin:
         raise HTTPException(status_code=403, detail="Admin not authorized to create a new admin")
     return new_admin
