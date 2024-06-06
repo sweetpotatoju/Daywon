@@ -220,7 +220,7 @@ class AdminUpdate(BaseModel):
 
 
 class AdminLogin(BaseModel):
-    admin_id: int
+    admin_name: str
     password: str
 
 

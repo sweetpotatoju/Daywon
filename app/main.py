@@ -1,16 +1,18 @@
+
+from fastapi import HTTPException, Form, Depends, Request, Response, Depends
 import os
 from random import random
-
-from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from fastapi.templating import Jinja2Templates
 from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 import re
 
+from starlette.responses import RedirectResponse
+
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
-    update_case_script, update_question, update_comment, get_category_by_content
+    update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name
 from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
     AdminUpdate, AdminLogin, CreateContentRequest
@@ -22,15 +24,30 @@ from app.core.prompt_image.createImage import generate_images
 from app.core.prompt_image.createPrompt import create_prompt, create_case_prompt, modify_prompt, modify_case_prompt
 from app.core.video.createVideo import VideoCreator, ftp_directory
 
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+# from starlette.templating import Jinja2Templates
+from fastapi.templating import Jinja2Templates
+
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
-print("A")
+
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 print(f"Templates directory: {templates_dir}")  # 디버깅: 템플릿 디렉토리 경로 출력
 templates = Jinja2Templates(directory=templates_dir)
+
+@app.get("/admin_login", response_class=HTMLResponse)
+async def admin_login_web(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.get("/admin_mainpage", response_class=HTMLResponse)
+async def admin_mainpage(request: Request):
+    return templates.TemplateResponse("admin_mainpage.html", {"request": request})
 
 
 # Dependency(DB 접근 함수)
@@ -475,12 +492,13 @@ def delete_admin(admin_id: int, db: Session = Depends(get_db)):
     return {"detail": "Admin deleted"}
 
 
+# 로그인 처리 라우트 핸들러
 @app.post("/admins/login")
-def login_admin(admin_data: AdminLogin, db: Session = Depends(get_db)):
-    admin = crud.get_admin_by_admin_name(db, admin_data.admin_name)
-    if not admin or not pwd_context.verify(admin_data.password, admin.password):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    return {"detail": "Login successful"}
+async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    admin = get_admin_by_admin_name(db, admin_name)
+    if not admin or admin.password != password:
+        return RedirectResponse(url=f"/admin_login?error=아이디나 비밀번호가 잘못되었습니다", status_code=303)
+    return RedirectResponse(url="/admin_mainpage", status_code=303)
 
 
 if __name__ == "__main__":
