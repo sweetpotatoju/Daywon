@@ -1,29 +1,12 @@
 import httpx
 import random
 from app.core.api import util_api, get_api_key, call_api
-from app.core.problem.Category import finance_categories
 
 api_key = get_api_key()
 model = 'gpt-4'
 
 
-def get_finance_category():
-    return finance_categories
-
-
-def get_random_finance_category():
-    categories = get_finance_category()
-    return random.choice(categories)
-
-
-async def create_prompt(category=None):
-    level = get_finance_level()
-
-    if category is None:
-        category = random.choice(get_finance_category())
-
-    print(level)
-    print(category)
+async def create_prompt(category,level):
 
     system_prompt = """
     다음 조건들을 모두 만족하는 예시 문장을 만들어주세요.
@@ -60,8 +43,7 @@ async def create_prompt(category=None):
 
     conceptual_script_data = await call_api(api_url, headers, data)
     conceptual_script = split_script_by_length(conceptual_script_data)
-    return
-    level, category
+    return conceptual_script, level, category
 
 
 def get_modify_system_prompt(level, original_conceptual_script, new_prompt):
@@ -169,12 +151,6 @@ async def modify_case_prompt(original_case_scripts, new_prompt):
     return modify_case_script_split
 
 
-def get_finance_level(finance_level=None):
-    # 예시
-    finance_levels = {1, 2, 3, 4, 5}
-    if finance_level is None:
-        finance_level = random.choice(list(finance_levels))
-    return finance_level
 
 
 # 두 문장씩 분리
