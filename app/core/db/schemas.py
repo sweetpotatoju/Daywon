@@ -198,7 +198,9 @@ class AdminBase(BaseModel):
 
 
 class AdminCreate(AdminBase):
-    pass
+    admin_name: str
+    password: str
+    qualification_level: int
 
 
 class AdminRead(AdminBase):
@@ -206,7 +208,14 @@ class AdminRead(AdminBase):
 
 
 class AdminUpdate(BaseModel):
-    password: Optional[str] = None
+    admin_id: int
+    password: str = None
+    admin_name: str = None
+    qualification_level: int = None
+
+class AdminLogin(BaseModel):
+    admin_id: int
+    password: str
 
 
 class HistoryBase(BaseModel):

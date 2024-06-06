@@ -119,8 +119,8 @@ class Admin(Base):
     __tablename__ = "admin"
     admin_id = Column(Integer, primary_key=True, index=True)
     password = Column(String)
-    qualification_level=Column(Integer)
-
+    admin_name = Column(String)
+    qualification_level = Column(Integer)
 
 
 class History(Base):
@@ -129,7 +129,7 @@ class History(Base):
     user_id = Column(Integer, ForeignKey("users.user_id"))
     scripts_id = Column(Integer, ForeignKey("scripts.scripts_id"))
     T_F = Column(Boolean)
-    time = Column(Integer,default=0)
+    time = Column(Integer, default=0)
 
     users = relationship("User", back_populates="histories")
     scripts = relationship("Scripts", back_populates="histories")
