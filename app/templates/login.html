@@ -72,6 +72,14 @@
             }
         }
     </style>
+    <script>
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('error')) {
+                alert(params.get('error'));
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container">

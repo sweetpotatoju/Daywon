@@ -475,9 +475,8 @@ def delete_admin(admin_id: int, db: Session = Depends(get_db)):
 async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     admin = get_admin_by_admin_name(db, admin_name)
     if not admin or admin.password != password:
-        raise HTTPException(status_code=400, detail="아이디나 비밀번호가 잘못되었습니다")
-    # 여기에 인증에 관련된 작업을 추가할 수 있습니다. 예를 들어 토큰을 생성하고 반환하는 등의 작업이 가능합니다.
-    return RedirectResponse(url="/admin_mainpage", status_code=303)  # 리다이렉션
+        return RedirectResponse(url=f"/admin_login?error=아이디나 비밀번호가 잘못되었습니다", status_code=303)
+    return RedirectResponse(url="/admin_mainpage", status_code=303)
 
 
 if __name__ == "__main__":
