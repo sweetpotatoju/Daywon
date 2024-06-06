@@ -40,6 +40,7 @@ def upload_file_to_ftp(local_file_path, remote_directory):
     except Exception as e:
         print(f"Unexpected error: {e}")
 
+
 def read_file_from_ftp(remote_directory):
     try:
         with get_ftp_connection() as ftp:

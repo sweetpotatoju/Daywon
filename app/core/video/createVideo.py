@@ -14,6 +14,7 @@ ftp_directory = "/video"
 # https://www.imagemagick.org/script/download.php#windows에서 imagemagick(dynamic ver) 다운
 # -> (+) 레거시 추가 체크 후, 설치 (pip 설치 불가능)
 
+
 def get_audio(input_text="주식에 대해 알아볼까요?"):
     client = OpenAI()
     # 사용 가능한 목소리 목록
@@ -50,6 +51,7 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
     except Exception as e:
         # 오류 발생 시 처리 로직
         return f"Failed to save audio: {str(e)}"
+
 
 
 class VideoCreator:
@@ -97,7 +99,8 @@ class VideoCreator:
             clip = ImageClip(path, duration=duration)
             img_width, img_height = clip.size
             txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, font=self.font, method='label')
-            txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(duration)
+            txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(
+                duration)
 
             # 이미지와 자막을 합성하여 비디오 클립 생성
             video = CompositeVideoClip([clip, txt_clip]).set_audio(audio_clip)

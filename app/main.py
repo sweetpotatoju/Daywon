@@ -11,7 +11,9 @@ from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
     update_case_script, update_question, update_comment, get_category_by_content
-from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest
+from app.core.db.models import Admin
+from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
+    AdminUpdate, AdminLogin
 from passlib.context import CryptContext
 
 from app.core.problem.createProblem import create_problem, combine_problem_parts, merge_explanations, \
@@ -450,6 +452,41 @@ async def modify_problem(scripts_id: int, request: ModifyScriptRequest, db: Sess
         return {"message": "Script updated successfully"}
     else:
         raise HTTPException(status_code=500, detail="Failed to update script")
+
+
+# admin
+@app.post("/admins/create/{admin_id}")
+def create_admin(admin_id: int, admin_data: AdminCreate, db: Session = Depends(get_db)):
+    new_admin = crud.create_admin(db, admin_data.dict(), admin_id, pwd_context)
+    if not new_admin:
+        raise HTTPException(status_code=403, detail="Admin not authorized to create a new admin")
+    return new_admin
+
+
+@app.put("/admins/update")
+def update_admin(admin_data: AdminUpdate, db: Session = Depends(get_db)):
+    admin_level = crud.get_admin_level(db, admin_data.admin_id)
+    if admin_level != 3:
+        raise HTTPException(status_code=403, detail="Admin not authorized to update")
+    updated_admin = crud.update_admin(db, admin_data.dict())
+    if not updated_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    return updated_admin
+
+
+@app.delete("/admins/delete/{admin_id}")
+def delete_admin(admin_id: int, db: Session = Depends(get_db)):
+    if not crud.delete_admin_if_level_3(db, admin_id):
+        raise HTTPException(status_code=403, detail="Admin not authorized to delete or admin not found")
+    return {"detail": "Admin deleted"}
+
+
+@app.post("/admins/login")
+def login_admin(admin_data: AdminLogin, db: Session = Depends(get_db)):
+    admin = crud.get_admin_by_admin_name(db, admin_data.admin_name)
+    if not admin or not pwd_context.verify(admin_data.password, admin.password):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    return {"detail": "Login successful"}
 
 
 if __name__ == "__main__":
