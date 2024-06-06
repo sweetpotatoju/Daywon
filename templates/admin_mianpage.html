@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ECEFF1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            width: 90%;
+            max-width: 1200px;
+            min-width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .logo {
+            width: 150px;
+        }
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            color: #37474F;
+        }
+        .account-info {
+            background-color: #1E88E5;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .account-info p {
+            margin: 10px 0;
+        }
+        .account-info .count {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 20px;
+            justify-content: center;
+            color: #37474F;
+        }
+        .blue-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #1E88E5;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .actions button {
+            width: 80%;
+            max-width: 300px;
+            background-color: #1565C0;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .actions button:hover {
+            background-color: #0D47A1;
+        }
+        @media (min-width: 768px) {
+            .actions {
+                flex-direction: row;
+                justify-content: space-around;
+            }
+            .actions button {
+                width: 45%;
+                max-width: none;
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="../res/logo.png" alt="Logo" class="logo">
+            <div class="greeting">관리자님, 안녕하세요!</div>
+        </div>
+        <div class="account-info">
+            <div class="count">
+                <p>생성된 문제 개수: 1004개</p>
+                <p>검토 완료된 문제 개수: 768개</p>
+                <p>이용자 수: 540명</p>
+            </div>
+        </div>
+        <div class="section-title">
+            <span class="blue-dot"></span>관리자 기능
+        </div>
+        <div class="actions">
+            <button id="create-question">문제 생성</button>
+            <button id="review-question">문제 검수</button>
+            <button id="manage-account">관리자 계정 관리</button>
+        </div>
+    </div>
+
+    <script>
+        // 사용자 권한 레벨 설정 (예시로 레벨 2로 설정)
+        var userLevel = 2;
+
+        // 버튼 요소 가져오기
+        var createQuestionBtn = document.getElementById('create-question');
+        var reviewQuestionBtn = document.getElementById('review-question');
+        var manageAccountBtn = document.getElementById('manage-account');
+
+        // 사용자 권한에 따라 버튼 표시/숨기기
+        if (userLevel < 1) {
+            createQuestionBtn.style.display = 'none';
+        }
+        if (userLevel < 2) {
+            reviewQuestionBtn.style.display = 'none';
+        }
+        if (userLevel < 3) {
+            manageAccountBtn.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

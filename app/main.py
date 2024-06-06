@@ -1,4 +1,6 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 import re
 
@@ -22,6 +24,13 @@ models.Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+
+
+@app.get("admin_web", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
 
 # Dependency(DB 접근 함수)

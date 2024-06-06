@@ -2,7 +2,6 @@
 app/core/db/base.py
 app/test
 alembic.ini
-alembic
 app/core/FTP_SERVER/setting.py
 
 
