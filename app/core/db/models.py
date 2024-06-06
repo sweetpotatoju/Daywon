@@ -36,7 +36,6 @@ class Ranking(Base):
 
     users = relationship("User", back_populates="rankings")
 
-
 class Scripts(Base):
     __tablename__ = "scripts"
     scripts_id = Column(Integer, primary_key=True, index=True, autoincrement=True)

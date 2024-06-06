@@ -1,6 +1,9 @@
-from fastapi import HTTPException, Form, Depends, Request, Response
+
+from fastapi import HTTPException, Form, Depends, Request, Response, Depends
+import os
+from random import random
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from starlette.responses import JSONResponse
 from sqlalchemy.orm import Session
 import re
 
@@ -12,7 +15,7 @@ from app.core.db.crud import get_user_by_email, update_user, update_user_points,
     update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name
 from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
-    AdminUpdate, AdminLogin
+    AdminUpdate, AdminLogin, CreateContentRequest
 from passlib.context import CryptContext
 
 from app.core.problem.createProblem import create_problem, combine_problem_parts, merge_explanations, \
@@ -32,8 +35,10 @@ models.Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
-templates = Jinja2Templates("templates")
 
+templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+print(f"Templates directory: {templates_dir}")  # 디버깅: 템플릿 디렉토리 경로 출력
+templates = Jinja2Templates(directory=templates_dir)
 
 @app.get("/admin_login", response_class=HTMLResponse)
 async def admin_login_web(request: Request):
@@ -52,6 +57,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+@app.get("/read_create_content/")
+async def read_create_content_root(request: Request):
+    print("Attempting to serve create_content.html")  # 디버깅: 요청 처리 시작 출력
+    return templates.TemplateResponse("create_content.html", {"request": request})
 
 
 # 유저 생성
@@ -166,6 +177,11 @@ def get_user__history(user_id: int, T_F: bool, db: Session = Depends(get_db)):
     return user_history
 
 
+@app.post("/category/", response_model=schemas.Category)
+def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+    return crud.create_category(db, category)
+
+
 #################################################
 
 @app.get("/scripts_read/{scripts_id}")
@@ -177,9 +193,15 @@ def read_script(scripts_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/create_content/")
-async def create_content(db: Session = Depends(get_db)):
+async def create_content(request: CreateContentRequest, db: Session = Depends(get_db)):
     try:
-        parts, level, category = await create_prompt("핀테크")
+        print(request.label)
+        random_category = crud.get_random_category_by_label(db, request.label)
+        categories_name= random_category.content
+        if not categories_name:
+            raise HTTPException(status_code=404, detail="Label not found")
+
+        parts, level, category = await create_prompt(categories_name, request.level)
         found_category_id = get_category_by_content(db=db, content=category)
         category_id = found_category_id.category_id
 

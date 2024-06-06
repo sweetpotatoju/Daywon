@@ -1,3 +1,6 @@
+import random
+from typing import Any
+
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from app.core.db import models, schemas
@@ -89,6 +92,21 @@ def update_rankings(db: Session):
     for rank, ranking in enumerate(rankings, start=1):
         ranking.ranking_position = rank
     db.commit()
+
+
+def get_random_category_by_label(db: Session, label: int):
+    categories = db.query(models.Category).filter(models.Category.label == label).all()
+    if not categories:
+        return None
+    return random.choice(categories)
+
+
+def create_category(db: Session, category: schemas.CategoryCreate) -> models.Category:
+    new_category = models.Category(content=category.content, label=category.label)
+    db.add(new_category)
+    db.commit()
+    db.refresh(new_category)
+    return new_category
 
 
 ###################################################################

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학습 콘텐츠 생성</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: white;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            background-color: #ECEFF1;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #37474F;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #37474F;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+        .blue-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #1E88E5;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .buttons button {
+            background-color: #64B5F6;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .buttons button:hover {
+            background-color: #42A5F5;
+        }
+        .buttons button.active {
+            background-color: #1565C0;
+        }
+        .level-buttons button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            padding: 0;
+        }
+        .submit-button {
+            background-color: #1E88E5;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .submit-button:hover {
+            background-color: #1565C0;
+        }
+        .loading-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 18px;
+            border-radius: 8px;
+        }
+        @media (max-width: 768px) {
+            .buttons button {
+                width: 80px;
+                height: 80px;
+                font-size: 14px;
+            }
+            .level-buttons button {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">문제 생성</div>
+
+        <div class="section">
+            <div class="section-title">
+                <span class="blue-dot"></span>카테고리
+            </div>
+            <div class="buttons category-buttons">
+                <button data-value="1">세금</button>
+                <button data-value="2">자산 관리</button>
+                <button data-value="3">금융 시사 상식</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <span class="blue-dot"></span>레벨
+            </div>
+            <div class="buttons level-buttons">
+                <button data-value="1">1</button>
+                <button data-value="2">2</button>
+                <button data-value="3">3</button>
+                <button data-value="4">4</button>
+                <button data-value="5">5</button>
+            </div>
+        </div>
+
+        <button class="submit-button">문제 생성하기</button>
+    </div>
+
+    <div class="loading-message" id="loading-message">문제 생성중...</div>
+
+    <script>
+        function handleButtonClick(event) {
+            const buttons = event.currentTarget.parentElement.querySelectorAll('button');
+            buttons.forEach(button => button.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        document.querySelectorAll('.category-buttons button').forEach(button => {
+            button.addEventListener('click', handleButtonClick);
+        });
+
+        document.querySelectorAll('.level-buttons button').forEach(button => {
+            button.addEventListener('click', handleButtonClick);
+        });
+
+        document.querySelector('.submit-button').addEventListener('click', async () => {
+            const activeCategoryButton = document.querySelector('.category-buttons .active');
+            const activeLevelButton = document.querySelector('.level-buttons .active');
+
+            if (!activeCategoryButton || !activeLevelButton) {
+                alert('카테고리와 레벨을 선택해주세요.');
+                return;
+            }
+
+            if (!confirm('문제를 생성하시겠습니까?')) {
+                return;
+            }
+
+            const category = parseInt(activeCategoryButton.getAttribute('data-value'));
+            const level = parseInt(activeLevelButton.getAttribute('data-value'));
+
+            // 콘솔에 전송되는 값 출력
+            console.log('전송되는 값:', { category, level });
+
+            // "문제 생성중" 메시지 표시
+            const loadingMessage = document.getElementById('loading-message');
+            loadingMessage.style.display = 'block';
+
+            try {
+                const response = await fetch('/create_content/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ label: category, level: level }) // JSON.stringify 사용
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('서버로부터 받은 데이터:', data); // 디버깅용 콘솔 출력
+                    alert(`카테고리: ${data.category}, 레벨: ${data.level}의 문제가 생성되었습니다.`);
+                } else {
+                    const errorData = await response.json();
+                    console.error('문제 생성 실패:', errorData);
+                    alert(`문제 생성에 실패했습니다: ${errorData.detail}`);
+                }
+            } catch (error) {
+                console.error('요청 중 오류 발생:', error);
+                alert('요청 중 오류가 발생했습니다.');
+            } finally {
+                // "문제 생성중" 메시지 숨기기
+                loadingMessage.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -2,6 +2,11 @@ from pydantic import BaseModel
 from typing import Optional
 
 
+class CreateContentRequest(BaseModel):
+    label: int
+    level: int
+
+
 class UserBase(BaseModel):
     name: str
     nickname: str
