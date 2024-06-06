@@ -1,5 +1,8 @@
-from fastapi import Depends, FastAPI, HTTPException, Request
+from random import random
+
+from fastapi import Depends, FastAPI, HTTPException, Request,Form
 from fastapi.templating import Jinja2Templates
+from starlette.responses import RedirectResponse
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 import re
@@ -25,12 +28,6 @@ app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
-
-@app.get("admin_web", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
-
-
 # Dependency(DB 접근 함수)
 def get_db():
     db = SessionLocal()
@@ -39,6 +36,22 @@ def get_db():
     finally:
         db.close()
 
+
+@app.get("/")
+def read_root(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/login")
+def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    # 로그인 로직을 임시로 주석 처리
+    # user = db.query(models.User).filter(models.User.username == username).first()
+    # if user is None or not pwd_context.verify(password, user.password):
+    #     raise HTTPException(status_code=400, detail="Invalid credentials")
+    # return RedirectResponse(url="/dashboard", status_code=303)
+
+    # 로그인 페이지를 다시 반환
+    return templates.TemplateResponse("login.html", {"request": request})
 
 # 유저 생성
 # 프론트앤드에서 오류가 낫을때, 필드의 값을 대채워달라는 메시지 표시(422 Unprocessable Entity 응답일때)
@@ -152,6 +165,11 @@ def get_user__history(user_id: int, T_F: bool, db: Session = Depends(get_db)):
     return user_history
 
 
+@app.post("/category/", response_model=schemas.Category)
+def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+    return crud.create_category(db, category)
+
+
 #################################################
 
 @app.get("/scripts_read/{scripts_id}")
@@ -163,9 +181,14 @@ def read_script(scripts_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/create_content/")
-async def create_content(db: Session = Depends(get_db)):
+async def create_content(label: int, level:int, db: Session = Depends(get_db)):
     try:
-        parts, level, category = await create_prompt("핀테크")
+
+        category = crud.get_random_category_by_label(db, label)
+        if not category:
+            raise HTTPException(status_code=404, detail="Label not found")
+
+        parts, level, category = await create_prompt(category,level)
         found_category_id = get_category_by_content(db=db, content=category)
         category_id = found_category_id.category_id
 
