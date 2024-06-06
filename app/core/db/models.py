@@ -118,6 +118,7 @@ class Comment(Base):
 class Admin(Base):
     __tablename__ = "admin"
     admin_id = Column(Integer, primary_key=True, index=True)
+    admin_name=Column(String)
     password = Column(String)
     qualification_level=Column(Integer)
 

@@ -1,4 +1,6 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 import re
 
@@ -20,6 +22,13 @@ models.Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+
+
+@app.get("admin_web", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
 
 # Dependency(DB 접근 함수)
@@ -135,13 +144,13 @@ def update_user_history(user_id: int, scripts_id: int, T_F: bool, db: Session = 
     return {"success"}
 
 
-
 @app.get("/get_user_history/{user_id}")
 def get_user__history(user_id: int, T_F: bool, db: Session = Depends(get_db)):
     user_history = crud.get_user_history(db, user_id=user_id, T_F=T_F)
     if not user_history:
         raise HTTPException(status_code=404, detail="User history not found")
     return user_history
+
 
 #################################################
 
