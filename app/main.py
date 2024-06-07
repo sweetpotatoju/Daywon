@@ -33,7 +33,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
-print(f"Templates directory: {templates_dir}")  # 디버깅: 템플릿 디렉토리 경로 출력
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/admin_login", response_class=HTMLResponse)
