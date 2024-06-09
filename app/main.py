@@ -53,14 +53,17 @@ def get_db():
     finally:
         db.close()
 
+
 # 세션에서 현재 사용자를 가져오는 함수 정의
 async def get_current_user(request: Request):
     session = request.session
     return session.get("user")
 
+
 @app.get("/admin_login", response_class=HTMLResponse)
 async def admin_login_web(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
 
 # admin=Depends(manager)
 @app.get("/admin_mainpage", response_class=HTMLResponse)
@@ -70,6 +73,7 @@ async def admin_mainpage(request: Request, current_user_admin: dict = Depends(ge
     print()
     return templates.TemplateResponse("admin_mainpage.html",
                                       {"request": request, "current_user_admin": current_user_admin})
+
 
 @app.get("/read_create_content/")
 async def read_create_content_root(request: Request):
@@ -235,6 +239,8 @@ def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
 
     print(f"Result: {result}")
     return result
+
+
 @app.get("/scripts_read/{scripts_id}")
 def read_script(scripts_id: int, db: Session = Depends(get_db)):
     db_script = crud.get_script(db, scripts_id=scripts_id)
