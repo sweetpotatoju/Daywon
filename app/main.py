@@ -79,12 +79,18 @@ def read_admins(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return admins
 
 
+@app.post("/create_admin/")
+async def create_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)):
+    db_admin = crud.create_admin(db, admin)
+    return "success"
+
 @app.put("/update_admins/{admin_id}")
 async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate, db: Session = Depends(get_db)):
     db_admin = crud.update_admin(db, admin_id, admin_update)
     if not db_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     return "success"  # 성공 시 "success" 문자열 반환
+
 
 @app.get("/admins_count/", response_model=int)
 def read_admin_count(db: Session = Depends(get_db)):
@@ -541,7 +547,6 @@ def create_admin(admin_id: int, admin_data: AdminCreate, db: Session = Depends(g
     if not new_admin:
         raise HTTPException(status_code=403, detail="Admin not authorized to create a new admin")
     return new_admin
-
 
 
 @app.delete("/admins/delete/{admin_id}")

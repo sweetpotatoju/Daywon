@@ -36,6 +36,7 @@ class Ranking(Base):
 
     users = relationship("User", back_populates="rankings")
 
+
 class Scripts(Base):
     __tablename__ = "scripts"
     scripts_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -116,11 +117,12 @@ class Comment(Base):
 
 class Admin(Base):
     __tablename__ = "admin"
-    admin_id = Column(Integer, primary_key=True, index=True)
-    admin_name = Column(String)
+    admin_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    admin_name = Column(String,unique=True)
     password = Column(String)
     qualification_level = Column(Integer)
-    account_status = Column(Boolean,default=True)
+    account_status = Column(Boolean, default=True)
+
 
 class History(Base):
     __tablename__ = "history"

@@ -385,20 +385,17 @@ def get_admin_by_admin_name(db: Session, admin_name: str):
     return db.query(Admin).filter(Admin.admin_name == admin_name).first()
 
 
-def create_admin(db: Session, admin_data: dict, admin_id: int, pwd_context):
-    admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
-    if admin and admin.qualification_level == 3:
-        hashed_password = pwd_context.hash(admin_data['password'])
-        new_admin = Admin(
-            admin_name=admin_data['admin_name'],
-            password=hashed_password,
-            qualification_level=admin_data['qualification_level']
-        )
-        db.add(new_admin)
-        db.commit()
-        db.refresh(new_admin)
-        return new_admin
-    return False
+def create_admin(db: Session, admin: schemas.AdminCreate):
+    db_admin = Admin(
+        admin_name=admin.admin_name,
+        qualification_level=admin.qualification_level,
+        password=admin.password,
+        account_status=True
+    )
+    db.add(db_admin)
+    db.commit()
+    db.refresh(db_admin)
+    return db_admin
 
 
 def update_admin(db: Session, admin_id: int, admin_update: schemas.AdminUpdate):

@@ -212,9 +212,9 @@
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: #a0ceff;
+            color: #000000;
+            border: 1px solid #d5e1f5;
             border-radius: 4px;
             padding: 20px;
             z-index: 1000;
@@ -222,326 +222,7 @@
         }
 
         .success-popup button {
-            background-color: #155724;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            margin-top: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-            .header, .filter-container {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .header img {
-                height: 24px;
-            }
-
-            .filter-container {
-                width: 100%;
-                padding: 10px;
-            }
-
-            table {
-                width: 100%;
-                margin: 0;
-            }
-
-            th, td {
-                padding: 8px;
-            }
-
-            .modal-content {
-                width: 90%;
-                max-width: 100%;
-                padding: 10px;
-            }
-
-            .modal input[type="text"], .modal input[type="password"], .modal select {
-                padding: 8px;
-            }
-
-            .modal button {
-                padding: 8px;
-                font-size: 14px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header img {
-                height: 20px;
-            }
-
-            .filter-container label {
-                margin-right: 5px;
-                font-size: 14px;
-            }
-
-            .filter-container select {
-                padding: 6px;
-                font-size: 12px;
-            }
-
-            button {
-                padding: 6px 10px;
-                font-size: 12px;
-            }
-
-            th, td {
-                padding: 6px;
-            }
-
-            .pagination button {
-                padding: 6px 10px;
-                font-size: 12px;
-            }
-
-            .modal-content {
-                width: 95%;
-                max-width: 100%;
-                padding: 8px;
-            }
-
-            .modal input[type="text"], .modal input[type="password"], .modal select {
-                padding: 6px;
-            }
-
-            .modal button {
-                padding: 6px;
-                font-size: 12px;
-            }
-        }
-    </style>
-</head>
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>계정 관리</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #d5e1f5;
-            margin: 0;
-            padding: 0;
-        }
-
-        .header {
-            background-color: #ffffff;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .header img {
-            height: 30px;
-        }
-
-        .header .icons {
-            display: flex;
-            gap: 10px;
-        }
-
-        h1 {
-            text-align: center;
-            margin: 20px 0;
-            color: #333;
-        }
-
-        .filter-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 0 20px;
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-        }
-
-        .filter-container label {
-            margin-right: 10px;
-            font-size: 16px;
-        }
-
-        .filter-container select {
-            padding: 8px;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #fff;
-            color: #555;
-            margin-right: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
-            max-width: 1200px;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #f7f9fc;
-            color: #555;
-        }
-
-        button {
-            padding: 8px 12px;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        button.active {
-            background-color: #316293;
-            color: white;
-        }
-
-        button.inactive {
-            background-color: #d9534f;
-            color: white;
-        }
-
-        button:hover {
-            background-color: #5a6268;
-        }
-
-        .level-select {
-            padding: 8px;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #fff;
-            color: #555;
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
-
-        .pagination button {
-            padding: 8px 12px;
-            margin: 0 5px;
-            border: 1px solid #ddd;
-            background-color: #fff;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .pagination button.active {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .pagination button:hover {
-            background-color: #5a6268;
-            color: white;
-        }
-
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-            padding-top: 60px;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 400px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .modal input[type="text"], .modal input[type="password"], .modal select {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        .modal button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .modal button:hover {
-            background-color: #0056b3;
-        }
-
-        .success-popup {
-            display: none;
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            border-radius: 4px;
-            padding: 20px;
-            z-index: 1000;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .success-popup button {
-            background-color: #155724;
+            background-color: #325985;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -724,14 +405,26 @@
                 }
                 const response = await fetch(url);
                 const data = await response.json();
+                console.log('Response data:', data);
+
                 if (!Array.isArray(data)) {
                     throw new Error("API 응답이 배열이 아닙니다.");
                 }
+
+                // 클라이언트 측 필터링
+                if (level !== null && level !== 'all') {
+                    return data.filter(account => account.qualification_level === parseInt(level));
+                }
+
                 return data;
             }
 
-            async function fetchAdminCount() {
-                const response = await fetch('/admin_count');
+            async function fetchAdminCount(level = null) {
+                let url = `/admin_count`;
+                if (level !== null && level !== 'all') {
+                    url += `?level=${level}`;
+                }
+                const response = await fetch(url);
                 return await response.json();
             }
 
@@ -765,8 +458,11 @@
                             button.classList.toggle('active');
                             button.classList.toggle('inactive');
                             const result = await updateAccount(account.admin_id, account);
-                            console.log(result); // 디버깅용 로그
-                            if (result) {
+                            console.log(`Result: "${result}"`); // 응답 값 확인'
+
+                            const cleanedResult = result.replace(/^"|"$/g, '').trim();
+                            console.log(`Result23: "${cleanedResult}"`); // 응답 값 확인'
+                            if (cleanedResult === "success") {
                                 showSuccessPopup();
                             } else {
                                 console.error("Failed to update account status");
@@ -776,11 +472,16 @@
                         row.querySelector('.level-select').addEventListener('change', async (event) => {
                             account.qualification_level = parseInt(event.target.value);
                             const result = await updateAccount(account.admin_id, account);
-                            console.log(result); // 디버깅용 로그
-                            if (result) {
+                            console.log(`Result: "${result}"`); // 응답 값 확인'
+
+                            const cleanedResult = result.replace(/^"|"$/g, '').trim();
+                            console.log(`Result: "${cleanedResult}"`); // 응답 값 확인'
+                            // 응답을 정리하고 비교
+                            if (cleanedResult === "success") {
+                                console.log("Account level updated successfully");
                                 showSuccessPopup();
                             } else {
-                                console.error("Failed to update account level");
+                                console.error("Failed to update account level. Result:", cleanedResult);
                             }
                         });
 
@@ -789,7 +490,7 @@
                         });
                     });
 
-                    renderPagination(await fetchAdminCount(), page);
+                    await renderPagination(await fetchAdminCount(level), page);
                 } catch (error) {
                     console.error("Error fetching accounts:", error);
                 }
@@ -804,12 +505,13 @@
                         },
                         body: JSON.stringify(account)
                     });
+
                     if (response.ok) {
-                        const result = await response.json();
+                        const result = await response.text();
                         console.log("Update result:", result); // 디버깅용 로그
-                        return result;
+                        return result.trim(); // 응답 문자열 정리
                     } else {
-                        console.error("Update failed with status:", response.status);
+                        console.error(`Update failed with status: ${response.status}`);
                         return null;
                     }
                 } catch (error) {
@@ -862,7 +564,8 @@
                 const newAccount = { admin_name: username, password, qualification_level: level, account_status: true };
                 const result = await createAccount(newAccount);
                 console.log(result); // 디버깅용 로그
-                if (result) {
+                const cleanedResult = result.replace(/^"|"$/g, '').trim();
+                if (cleanedResult === "success") {
                     await renderAccounts();
                     addAccountModal.style.display = "none";
                     showSuccessPopup();
@@ -873,7 +576,7 @@
 
             async function createAccount(account) {
                 try {
-                    const response = await fetch('/admins', {
+                    const response = await fetch('/create_admin/', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -881,9 +584,9 @@
                         body: JSON.stringify(account)
                     });
                     if (response.ok) {
-                        const result = await response.json();
+                        const result = await response.text();  // "success" 문자열 받기
                         console.log("Create result:", result); // 디버깅용 로그
-                        return result;
+                        return result.trim(); // 응답 문자열 정리
                     } else {
                         console.error("Create failed with status:", response.status);
                         return null;

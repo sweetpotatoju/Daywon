@@ -208,7 +208,6 @@ class CommentUpdate(BaseModel):
 class AdminBase(BaseModel):
     admin_name: str
     qualification_level: int
-    account_status: bool
 
 
 class AdminCreate(AdminBase):
