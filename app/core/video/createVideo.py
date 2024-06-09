@@ -59,7 +59,7 @@ class VideoCreator:
         self.clips_info = clips_info
         self.video_name = 'completed_video'
         self.video_detail_name = ''
-        self.font = 'NanumGothic'
+        self.font = './core/video/font/Jalnan2TTF.ttf'
         self.fontsize = 60
         self.color = 'white'
         self.bg_color = 'black'
