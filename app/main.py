@@ -307,8 +307,8 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
         clips_info = []
         await generate_images(case_script_split, clips_info)
         video_creator = VideoCreator(clips_info, ftp_directory, new_filename)
-        await video_creator.create_video()
         shortform_name = video_creator.get_video_file_path()
+        await video_creator.create_video()
         shortform = {
             "scripts_id": script_id,
             "form_url": shortform_name
