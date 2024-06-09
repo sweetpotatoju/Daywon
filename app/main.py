@@ -47,13 +47,11 @@ security = APIKeyCookie(name="session")
 
 # Dependency(DB 접근 함수)
 def get_db():
-    db = None
+    db = SessionLocal()
     try:
-        db = SessionLocal()
         yield db
     finally:
-        if db is not None:
-            db.close()
+        db.close()
 
 
 # 세션에서 현재 사용자를 가져오는 함수 정의
