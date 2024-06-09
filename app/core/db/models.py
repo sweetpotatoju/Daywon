@@ -120,7 +120,7 @@ class Admin(Base):
     admin_name = Column(String)
     password = Column(String)
     qualification_level = Column(Integer)
-
+    account_status = Column(Boolean,default=True)
 
 class History(Base):
     __tablename__ = "history"

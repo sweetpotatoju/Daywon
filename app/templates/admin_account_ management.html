@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계정 관리</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #d5e1f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #ffffff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header img {
+            height: 30px;
+        }
+
+        .header .icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-container label {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .filter-container select {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #555;
+            margin-right: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f7f9fc;
+            color: #555;
+        }
+
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        button.active {
+            background-color: #316293;
+            color: white;
+        }
+
+        button.inactive {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #5a6268;
+        }
+
+        .level-select {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #555;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .pagination button.active {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .pagination button:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal input[type="text"], .modal input[type="password"], .modal select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal button:hover {
+            background-color: #0056b3;
+        }
+
+        .success-popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-popup button {
+            background-color: #155724;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .header, .filter-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header img {
+                height: 24px;
+            }
+
+            .filter-container {
+                width: 100%;
+                padding: 10px;
+            }
+
+            table {
+                width: 100%;
+                margin: 0;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .modal-content {
+                width: 90%;
+                max-width: 100%;
+                padding: 10px;
+            }
+
+            .modal input[type="text"], .modal input[type="password"], .modal select {
+                padding: 8px;
+            }
+
+            .modal button {
+                padding: 8px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header img {
+                height: 20px;
+            }
+
+            .filter-container label {
+                margin-right: 5px;
+                font-size: 14px;
+            }
+
+            .filter-container select {
+                padding: 6px;
+                font-size: 12px;
+            }
+
+            button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 6px;
+            }
+
+            .pagination button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .modal-content {
+                width: 95%;
+                max-width: 100%;
+                padding: 8px;
+            }
+
+            .modal input[type="text"], .modal input[type="password"], .modal select {
+                padding: 6px;
+            }
+
+            .modal button {
+                padding: 6px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계정 관리</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #d5e1f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #ffffff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header img {
+            height: 30px;
+        }
+
+        .header .icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #333;
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-container label {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .filter-container select {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #555;
+            margin-right: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f7f9fc;
+            color: #555;
+        }
+
+        button {
+            padding: 8px 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        button.active {
+            background-color: #316293;
+            color: white;
+        }
+
+        button.inactive {
+            background-color: #d9534f;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #5a6268;
+        }
+
+        .level-select {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #555;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .pagination button.active {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .pagination button:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal input[type="text"], .modal input[type="password"], .modal select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal button:hover {
+            background-color: #0056b3;
+        }
+
+        .success-popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-popup button {
+            background-color: #155724;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .header, .filter-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header img {
+                height: 24px;
+            }
+
+            .filter-container {
+                width: 100%;
+                padding: 10px;
+            }
+
+            table {
+                width: 100%;
+                margin: 0;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .modal-content {
+                width: 90%;
+                max-width: 100%;
+                padding: 10px;
+            }
+
+            .modal input[type="text"], .modal input[type="password"], .modal select {
+                padding: 8px;
+            }
+
+            .modal button {
+                padding: 8px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header img {
+                height: 20px;
+            }
+
+            .filter-container label {
+                margin-right: 5px;
+                font-size: 14px;
+            }
+
+            .filter-container select {
+                padding: 6px;
+                font-size: 12px;
+            }
+
+            button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 6px;
+            }
+
+            .pagination button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            .modal-content {
+                width: 95%;
+                max-width: 100%;
+                padding: 8px;
+            }
+
+            .modal input[type="text"], .modal input[type="password"], .modal select {
+                padding: 6px;
+            }
+
+            .modal button {
+                padding: 6px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="../res/logo.png" alt="Logo">
+        <div class="icons">
+            <img src="path/to/user-icon.png" alt="User Icon">
+        </div>
+    </div>
+    <h1>계정 관리</h1>
+    <div class="filter-container">
+        <div class="filter-group">
+            <label for="levelFilter">레벨 선택:</label>
+            <select id="levelFilter" class="level-select">
+                <option value="all">전체</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+            </select>
+        </div>
+        <button id="addAccountBtn">계정 등록</button>
+    </div>
+    <table id="accountTable">
+        <thead>
+            <tr>
+                <th>아이디</th>
+                <th>활성화 상태</th>
+                <th>레벨</th>
+                <th>비밀번호 확인</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 계정 데이터가 여기에 표시됨 -->
+        </tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+
+    <!-- 계정 등록 모달 -->
+    <div id="addAccountModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>계정 등록</h2>
+            <form id="addAccountForm">
+                <input type="text" id="newUsername" name="username" placeholder="아이디" required><br>
+                <input type="password" id="newPassword" name="password" placeholder="비밀번호" required><br>
+                <select id="newAccountLevel" name="level" required>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select><br>
+                <button type="submit">등록</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 비밀번호 확인 모달 -->
+    <div id="checkPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>비밀번호 확인</h2>
+            <form id="checkPasswordForm">
+                <input type="password" id="adminPassword" placeholder="관리자 비밀번호" required><br>
+                <button type="submit">확인</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 성공 팝업 -->
+    <div id="successPopup" class="success-popup">
+        <p>업데이트가 성공적으로 완료되었습니다.</p>
+        <button onclick="closeSuccessPopup()">확인</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const accountTableBody = document.querySelector('#accountTable tbody');
+            const levelFilter = document.getElementById('levelFilter');
+            const paginationContainer = document.getElementById('pagination');
+            const addAccountBtn = document.getElementById('addAccountBtn');
+            const addAccountModal = document.getElementById("addAccountModal");
+            const checkPasswordModal = document.getElementById("checkPasswordModal");
+            const addAccountSpan = addAccountModal.getElementsByClassName("close")[0];
+            const checkPasswordSpan = checkPasswordModal.getElementsByClassName("close")[0];
+            const successPopup = document.getElementById("successPopup");
+
+            async function fetchAccounts(skip = 0, limit = 10, level = null) {
+                let url = `/read_admins_list/?skip=${skip}&limit=${limit}`;
+                if (level !== null && level !== 'all') {
+                    url += `&level=${level}`;
+                }
+                const response = await fetch(url);
+                const data = await response.json();
+                if (!Array.isArray(data)) {
+                    throw new Error("API 응답이 배열이 아닙니다.");
+                }
+                return data;
+            }
+
+            async function fetchAdminCount() {
+                const response = await fetch('/admin_count');
+                return await response.json();
+            }
+
+            async function renderAccounts(level = null, page = 1) {
+                try {
+                    const accounts = await fetchAccounts((page - 1) * 10, 10, level);
+                    accountTableBody.innerHTML = '';
+                    accounts.forEach(account => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${account.admin_name}</td>
+                            <td>
+                                <button class="toggle-active ${account.account_status ? 'active' : 'inactive'}">${account.account_status ? '활성화됨' : '비활성화됨'}</button>
+                            </td>
+                            <td>
+                                <select class="level-select">
+                                    <option value="1" ${account.qualification_level === 1 ? 'selected' : ''}>1</option>
+                                    <option value="2" ${account.qualification_level === 2 ? 'selected' : ''}>2</option>
+                                </select>
+                            </td>
+                            <td>
+                                <button class="check-password">비밀번호 확인</button>
+                            </td>
+                        `;
+                        accountTableBody.appendChild(row);
+
+                        row.querySelector('.toggle-active').addEventListener('click', async () => {
+                            account.account_status = !account.account_status;
+                            const button = row.querySelector('.toggle-active');
+                            button.textContent = account.account_status ? '활성화됨' : '비활성화됨';
+                            button.classList.toggle('active');
+                            button.classList.toggle('inactive');
+                            const result = await updateAccount(account.admin_id, account);
+                            console.log(result); // 디버깅용 로그
+                            if (result) {
+                                showSuccessPopup();
+                            } else {
+                                console.error("Failed to update account status");
+                            }
+                        });
+
+                        row.querySelector('.level-select').addEventListener('change', async (event) => {
+                            account.qualification_level = parseInt(event.target.value);
+                            const result = await updateAccount(account.admin_id, account);
+                            console.log(result); // 디버깅용 로그
+                            if (result) {
+                                showSuccessPopup();
+                            } else {
+                                console.error("Failed to update account level");
+                            }
+                        });
+
+                        row.querySelector('.check-password').addEventListener('click', () => {
+                            checkPasswordModal.style.display = "block";
+                        });
+                    });
+
+                    renderPagination(await fetchAdminCount(), page);
+                } catch (error) {
+                    console.error("Error fetching accounts:", error);
+                }
+            }
+
+            async function updateAccount(admin_id, account) {
+                try {
+                    const response = await fetch(`/update_admins/${admin_id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(account)
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log("Update result:", result); // 디버깅용 로그
+                        return result;
+                    } else {
+                        console.error("Update failed with status:", response.status);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error("Error updating account:", error);
+                    return null;
+                }
+            }
+
+            async function renderPagination(totalItems, currentPage) {
+                paginationContainer.innerHTML = '';
+                const totalPages = Math.ceil(totalItems / 10);
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const button = document.createElement('button');
+                    button.textContent = i;
+                    button.classList.add(i === currentPage ? 'active' : '');
+                    button.addEventListener('click', () => {
+                        renderAccounts(levelFilter.value, i); // 페이지 클릭 시 레벨 필터 적용
+                    });
+                    paginationContainer.appendChild(button);
+                }
+            }
+
+            addAccountBtn.addEventListener('click', () => {
+                addAccountModal.style.display = "block";
+            });
+
+            addAccountSpan.onclick = function() {
+                addAccountModal.style.display = "none";
+            }
+
+            checkPasswordSpan.onclick = function() {
+                checkPasswordModal.style.display = "none";
+            }
+
+            window.onclick = function(event) {
+                if (event.target == addAccountModal) {
+                    addAccountModal.style.display = "none";
+                }
+                if (event.target == checkPasswordModal) {
+                    checkPasswordModal.style.display = "none";
+                }
+            }
+
+            document.getElementById('addAccountForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const username = document.getElementById('newUsername').value;
+                const password = document.getElementById('newPassword').value;
+                const level = parseInt(document.getElementById('newAccountLevel').value);
+                const newAccount = { admin_name: username, password, qualification_level: level, account_status: true };
+                const result = await createAccount(newAccount);
+                console.log(result); // 디버깅용 로그
+                if (result) {
+                    await renderAccounts();
+                    addAccountModal.style.display = "none";
+                    showSuccessPopup();
+                } else {
+                    console.error("Failed to create account");
+                }
+            });
+
+            async function createAccount(account) {
+                try {
+                    const response = await fetch('/admins', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(account)
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log("Create result:", result); // 디버깅용 로그
+                        return result;
+                    } else {
+                        console.error("Create failed with status:", response.status);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error("Error creating account:", error);
+                    return null;
+                }
+            }
+
+            function showSuccessPopup() {
+                successPopup.style.display = "block";
+                setTimeout(() => {
+                    successPopup.style.display = "none";
+                }, 3000);
+            }
+
+            window.closeSuccessPopup = closeSuccessPopup;
+
+            function closeSuccessPopup() {
+                successPopup.style.display = "none";
+            }
+
+            renderAccounts();
+
+            levelFilter.addEventListener('change', () => {
+                renderAccounts(levelFilter.value);
+            });
+        });
+    </script>
+</body>
+</html>

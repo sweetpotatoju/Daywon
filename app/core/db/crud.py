@@ -367,6 +367,14 @@ def get_shortform_by_scripts_id(db: Session, scripts_id: int):
     return db.query(Shortform).filter(Shortform.scripts_id == scripts_id).first()
 
 
+def get_admins(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Admin).filter(models.Admin.qualification_level != 3).offset(skip).limit(limit).all()
+
+
+def get_admin_count(db: Session):
+    return db.query(models.Admin).count()
+
+
 # 가장 최근에 추가된 shortform 데이터를 읽어오는 함수
 def get_latest_shortform(db):
     return db.query(Shortform).order_by(desc(Shortform.form_id)).first()
@@ -393,6 +401,16 @@ def create_admin(db: Session, admin_data: dict, admin_id: int, pwd_context):
     return False
 
 
+def update_admin(db: Session, admin_id: int, admin_update: schemas.AdminUpdate):
+    db_admin = db.query(models.Admin).filter(models.Admin.admin_id == admin_id).first()
+    if not db_admin:
+        return None
+    db_admin.qualification_level = admin_update.qualification_level
+    db_admin.account_status = admin_update.account_status
+    db.commit()
+    db.refresh(db_admin)
+    return db_admin
+
 def delete_admin_if_level_3(db: Session, admin_id: int):
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin and admin.qualification_level == 3:
@@ -408,21 +426,6 @@ def get_admin_level(db: Session, admin_id: int):
         return admin.qualification_level
     return None
 
-
-def update_admin(db: Session, admin_data: dict):
-    admin_id = admin_data.get("admin_id")
-    admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
-    if admin:
-        if "qualification_level" in admin_data:
-            admin.qualification_level = admin_data["qualification_level"]
-
-            db.commit()
-            db.refresh(admin)
-            return admin
-    return None
-
-
-# history
 
 def create_user_history(db: Session, user_id: int, script_id: int, T_F: bool):
     user_history = History(user_id=user_id, script_id=script_id, T_F=T_F)

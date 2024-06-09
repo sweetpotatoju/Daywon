@@ -56,6 +56,11 @@ async def admin_mainpage(request: Request):
     return templates.TemplateResponse("admin_mainpage.html", {"request": request})
 
 
+@app.get("/admin_account_management_page", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("admin_account_ management.html", {"request": request})
+
+
 @app.get("/read_create_content")
 async def read_create_content_root(request: Request):
     print("Attempting to serve create_content.html")  # 디버깅: 요청 처리 시작 출력
@@ -66,6 +71,25 @@ async def read_create_content_root(request: Request):
 async def read_content_list_root(request: Request):
     print("Attempting to serve create_content.html")  # 디버깅: 요청 처리 시작 출력
     return templates.TemplateResponse("content_list.html", {"request": request})
+
+
+@app.get("/read_admins_list/", response_model=List[schemas.Admin])
+def read_admins(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    admins = crud.get_admins(db, skip=skip, limit=limit)
+    return admins
+
+
+@app.put("/update_admins/{admin_id}")
+async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate, db: Session = Depends(get_db)):
+    db_admin = crud.update_admin(db, admin_id, admin_update)
+    if not db_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    return "success"  # 성공 시 "success" 문자열 반환
+
+@app.get("/admins_count/", response_model=int)
+def read_admin_count(db: Session = Depends(get_db)):
+    count = crud.get_admin_count(db)
+    return count
 
 
 # 유저 생성
@@ -219,6 +243,8 @@ def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
 
     print(f"Result: {result}")
     return result
+
+
 @app.get("/scripts_read/{scripts_id}")
 def read_script(scripts_id: int, db: Session = Depends(get_db)):
     db_script = crud.get_script(db, scripts_id=scripts_id)
@@ -516,16 +542,6 @@ def create_admin(admin_id: int, admin_data: AdminCreate, db: Session = Depends(g
         raise HTTPException(status_code=403, detail="Admin not authorized to create a new admin")
     return new_admin
 
-
-@app.put("/admins/update")
-def update_admin(admin_data: AdminUpdate, db: Session = Depends(get_db)):
-    admin_level = crud.get_admin_level(db, admin_data.admin_id)
-    if admin_level != 3:
-        raise HTTPException(status_code=403, detail="Admin not authorized to update")
-    updated_admin = crud.update_admin(db, admin_data.dict())
-    if not updated_admin:
-        raise HTTPException(status_code=404, detail="Admin not found")
-    return updated_admin
 
 
 @app.delete("/admins/delete/{admin_id}")
