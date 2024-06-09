@@ -81,8 +81,13 @@ def read_admins(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 
 @app.post("/create_admin/")
 async def create_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)):
-    db_admin = crud.create_admin(db, admin)
-    return "success"
+    try:
+        crud.create_admin(db, admin)
+        return "success"
+    except Exception as e:
+        # 예외가 발생하면 에러 메시지를 반환
+        return "error"
+
 
 @app.put("/update_admins/{admin_id}")
 async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate, db: Session = Depends(get_db)):
@@ -96,6 +101,21 @@ async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate
 def read_admin_count(db: Session = Depends(get_db)):
     count = crud.get_admin_count(db)
     return count
+
+
+@app.post("/check_admin_password/")
+async def check_admin_password(request: Request, db: Session = Depends(get_db)):
+    data = await request.json()
+    admin_password = data['password']
+    admin_id = data['adminId']
+
+    # 관리자 비밀번호 확인 로직 구현
+    if not crud.check_admin_password(db, admin_password):
+        raise HTTPException(status_code=400, detail="Invalid password")
+
+    # 사용자 비밀번호 가져오기
+    user_password = crud.get_user_password(db, admin_id)
+    return {"password": user_password}
 
 
 # 유저 생성
@@ -560,7 +580,7 @@ def delete_admin(admin_id: int, db: Session = Depends(get_db)):
 @app.post("/admins/login")
 async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
                       db: Session = Depends(get_db)):
-    admin = get_admin_by_admin_name(db, admin_name)
+    admin = crud.get_active_admin_by_admin_name(db, admin_name)
     if not admin or admin.password != password:
         return RedirectResponse(url=f"/admin_login?error=아이디나 비밀번호가 잘못되었습니다", status_code=303)
     return RedirectResponse(url="/admin_mainpage", status_code=303)

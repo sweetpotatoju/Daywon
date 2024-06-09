@@ -385,6 +385,10 @@ def get_admin_by_admin_name(db: Session, admin_name: str):
     return db.query(Admin).filter(Admin.admin_name == admin_name).first()
 
 
+def get_active_admin_by_admin_name(db: Session, admin_name: str):
+    return db.query(Admin).filter(Admin.admin_name == admin_name, Admin.account_status == True).first()
+
+
 def create_admin(db: Session, admin: schemas.AdminCreate):
     db_admin = Admin(
         admin_name=admin.admin_name,
@@ -408,6 +412,7 @@ def update_admin(db: Session, admin_id: int, admin_update: schemas.AdminUpdate):
     db.refresh(db_admin)
     return db_admin
 
+
 def delete_admin_if_level_3(db: Session, admin_id: int):
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin and admin.qualification_level == 3:
@@ -421,6 +426,23 @@ def get_admin_level(db: Session, admin_id: int):
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin:
         return admin.qualification_level
+    return None
+
+
+def check_admin_password(db: Session, password: str):
+    admin = db.query(Admin).filter(Admin.qualification_level == 3).first()  # level 3 관리자 계정 확인
+    if not admin:
+        return "fail"
+    if admin.password == password:  # 평문 비밀번호 비교
+        return "success"
+    else:
+        return "fail"
+
+
+def get_user_password(db: Session, admin_id: int):
+    admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
+    if admin:
+        return admin.password  # 실제 서비스에서는 비밀번호를 반환하는 대신 다른 보안 조치를 고려해야 함
     return None
 
 
