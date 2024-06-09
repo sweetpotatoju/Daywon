@@ -117,6 +117,15 @@ def get_script(db: Session, scripts_id: int):
     return db.query(Scripts).filter(Scripts.scripts_id == scripts_id).first()
 
 
+def get_scripts_by_inspection_status(db: Session, inspection_status: bool):
+    try:
+        return db.query(Scripts).join(Category, Scripts.category_id == Category.category_id).filter(
+            Scripts.inspection_status == inspection_status).all()
+    except Exception as e:
+        print(f"Error fetching scripts: {e}")
+        return None
+
+
 def create_script(db: Session, script_data):
     new_script = Scripts(
         level=script_data['level'],
@@ -366,8 +375,6 @@ def get_latest_shortform(db):
 # admin
 def get_admin_by_admin_name(db: Session, admin_name: str):
     return db.query(Admin).filter(Admin.admin_name == admin_name).first()
-
-
 
 
 def create_admin(db: Session, admin_data: dict, admin_id: int, pwd_context):

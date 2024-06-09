@@ -72,12 +72,12 @@
             margin-right: 5px;
         }
         .actions {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: grid;
+            gap: 10px;
+            justify-items: center;
         }
         .actions button {
-            width: 80%;
+            width: 100%;
             max-width: 300px;
             background-color: #1565C0;
             color: white;
@@ -86,21 +86,20 @@
             border-radius: 10px;
             font-size: 18px;
             cursor: pointer;
-            margin-bottom: 10px;
             transition: background-color 0.3s ease;
         }
         .actions button:hover {
             background-color: #0D47A1;
         }
         @media (min-width: 768px) {
-            .actions {
-                flex-direction: row;
-                justify-content: space-around;
+            .actions.one-button {
+                grid-template-columns: 1fr;
             }
-            .actions button {
-                width: 45%;
-                max-width: none;
-                margin-bottom: 0;
+            .actions.two-buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+            .actions.three-buttons {
+                grid-template-columns: 1fr 1fr 1fr;
             }
         }
     </style>
@@ -121,7 +120,7 @@
         <div class="section-title">
             <span class="blue-dot"></span>관리자 기능
         </div>
-        <div class="actions">
+        <div class="actions" id="actions">
             <button id="create-question">문제 생성</button>
             <button id="review-question">문제 검수</button>
             <button id="manage-account">관리자 계정 관리</button>
@@ -136,6 +135,7 @@
         var createQuestionBtn = document.getElementById('create-question');
         var reviewQuestionBtn = document.getElementById('review-question');
         var manageAccountBtn = document.getElementById('manage-account');
+        var actionsDiv = document.getElementById('actions');
 
         // 사용자 권한에 따라 버튼 표시/숨기기
         if (userLevel < 1) {
@@ -148,7 +148,17 @@
             manageAccountBtn.style.display = 'none';
         }
 
-       // 디버깅을 위한 콘솔 출력
+        // 버튼 수에 따라 클래스 추가
+        var visibleButtons = actionsDiv.querySelectorAll('button:not([style*="display: none"])').length;
+        if (visibleButtons === 1) {
+            actionsDiv.classList.add('one-button');
+        } else if (visibleButtons === 2) {
+            actionsDiv.classList.add('two-buttons');
+        } else if (visibleButtons === 3) {
+            actionsDiv.classList.add('three-buttons');
+        }
+
+        // 디버깅을 위한 콘솔 출력
         console.log('JavaScript 파일이 로드되었습니다.');
 
         // 버튼 클릭 시 페이지 이동
@@ -157,7 +167,15 @@
             window.location.href = '/read_create_content/';
         });
 
+        reviewQuestionBtn.addEventListener('click', function() {
+            console.log('문제 검수 버튼 클릭됨');
+            window.location.href = '/read_content_list/';
+        });
 
+        manageAccountBtn.addEventListener('click', function() {
+            console.log('관리자 계정 관리 버튼 클릭됨');
+            window.location.href = '/manage_account/';
+        });
 
     </script>
 </body>

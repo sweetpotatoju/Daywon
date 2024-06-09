@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>검수 리스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #9bc6f5;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #ffffff;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header img {
+            height: 30px;
+        }
+        .header .icons {
+            display: flex;
+            gap: 10px;
+        }
+        .container {
+            display: flex;
+            margin-top: 20px;
+        }
+        .sidebar {
+            width: 20%;
+            padding: 10px;
+            background-color: #fff;
+            border-right: 1px solid #ccc;
+        }
+        .sidebar h3 {
+            text-align: center;
+            color: #5c9dff;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .sidebar ul li {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .sidebar ul li:hover,
+        .sidebar ul li.active {
+            background-color: #e0e0e0;
+        }
+        .list-container {
+            width: 80%;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            background-color: #f9f9f9;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        .list-item:hover {
+            background-color: #e0e0e0;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .pagination button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            cursor: pointer;
+        }
+        .pagination button.active {
+            background-color: #5c9dff;
+            color: white;
+        }
+        .filter select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="../res/logo.png" alt="Logo">
+        <div class="icons">
+            <img src="path/to/user-icon.png" alt="User Icon">
+        </div>
+    </div>
+    <div class="container">
+        <div class="sidebar">
+            <h3>항목 선택</h3>
+            <ul>
+                <li onclick="showList(this, true)">
+                    검수 완료 콘텐츠
+                </li>
+                <li onclick="showList(this, false)">
+                    검수 필요 콘텐츠
+                </li>
+            </ul>
+        </div>
+        <div class="list-container" id="list-container">
+            <div class="list-header">
+                <h3 id="list-title">리스트</h3>
+                <div class="filter">
+                    <label for="levelFilter">레벨 선택:</label>
+                    <select id="levelFilter" onchange="updateList()">
+                        <option value="all">전체</option>
+                        <option value="1">레벨 1</option>
+                        <option value="2">레벨 2</option>
+                        <option value="3">레벨 3</option>
+                        <option value="4">레벨 4</option>
+                        <option value="5">레벨 5</option>
+                    </select>
+                </div>
+            </div>
+            <div id="items"></div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        let currentInspectionStatus = true;
+        let allItems = [];
+
+        async function fetchContents(inspection_status) {
+            try {
+                const url = `http://127.0.0.1:8000/read_content_list_status/?inspection_status=${inspection_status}`;
+                console.log(`Fetching contents from: ${url}`);
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                const data = await response.json();
+                console.log('Fetched data:', data);
+                allItems = data;
+                updateList();
+            } catch (error) {
+                console.error('Error fetching contents:', error);
+            }
+        }
+
+        function showList(element, inspection_status) {
+            currentInspectionStatus = inspection_status;
+            currentPage = 1;
+            document.getElementById('list-title').innerText = inspection_status ? '검수 완료 콘텐츠' : '검수 필요 콘텐츠';
+            fetchContents(inspection_status);
+
+            // 모든 li 요소에서 active 클래스를 제거
+            const listItems = document.querySelectorAll('.sidebar ul li');
+            listItems.forEach(item => item.classList.remove('active'));
+
+            // 클릭된 항목에 active 클래스 추가
+            element.classList.add('active');
+        }
+
+        function updateList() {
+            const listContainer = document.getElementById('list-container');
+            const levelFilter = document.getElementById('levelFilter').value;
+            const filteredItems = filterItems(allItems, levelFilter);
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+            console.log('Filtered Items:', filteredItems); // 필터링된 데이터 확인
+
+            // Clear existing list and pagination
+            document.getElementById('items').innerHTML = '';
+            document.getElementById('pagination').innerHTML = '';
+
+            const itemsContainer = document.getElementById('items');
+            const paginationContainer = document.getElementById('pagination');
+
+            // Display items for the current page
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredItems.length);
+            for (let i = startIndex; i < endIndex; i++) {
+                itemsContainer.appendChild(createListItem(filteredItems[i]));
+            }
+
+            // Display pagination
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                if (i === currentPage) {
+                    button.classList.add('active');
+                }
+                button.onclick = () => {
+                    currentPage = i;
+                    updateList();
+                };
+                paginationContainer.appendChild(button);
+            }
+        }
+
+        function filterItems(items, levelFilter) {
+            return items.filter(item => {
+                return levelFilter === 'all' || item.level == levelFilter;
+            });
+        }
+
+        function createListItem(item) {
+            const listItem = document.createElement('div');
+            listItem.className = 'list-item';
+            listItem.onclick = () => {
+                window.location.href = `nextpage.html?content=${item.scripts_id}`;
+            };
+            console.log('Creating list item for:', item); // 데이터 확인
+            listItem.innerHTML = `<span>${item.return_value} (${item.category_content}) - 레벨 ${item.level}, ID: ${item.scripts_id}</span>`;
+            return listItem;
+        }
+
+        // 페이지 로드 시 기본 콘텐츠 불러오기
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstItem = document.querySelector('.sidebar ul li:first-child');
+            firstItem.classList.add('active');
+            showList(firstItem, true);
+        });
+    </script>
+</body>
+</html>
