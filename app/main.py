@@ -74,6 +74,7 @@ async def admin_login_web(request: Request):
 async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user)):
     if not current_user_admin:
         return RedirectResponse(url="/admin_login", status_code=303)
+    print()
     return templates.TemplateResponse("admin_mainpage.html",
                                       {"request": request, "current_user_admin": current_user_admin})
 
@@ -521,8 +522,11 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
         return RedirectResponse(url=f"/admin_login?error=아이디나 비밀번호가 잘못되었습니다", status_code=303)
 
     session = request.session
-    session["user"] = {"admin_name": admin_name}  # 여기서는 간단하게 사용자명만 저장
-
+    session["user"] = {
+        "admin_id": admin.admin_id,
+        "admin_name": admin.admin_name,
+        "qualification_level": admin.qualification_level
+    }
     response = RedirectResponse(url="/admin_mainpage", status_code=303)
     return response
 
