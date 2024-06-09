@@ -1,12 +1,8 @@
-from datetime import datetime
-
 from fastapi import HTTPException, Form, Depends
 import os
 from sqlalchemy.orm import Session
 import re
-
 from starlette.responses import RedirectResponse
-
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
@@ -15,7 +11,6 @@ from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
     AdminUpdate, AdminLogin, CreateContentRequest
 from passlib.context import CryptContext
-
 from app.core.problem.createProblem import create_problem, combine_problem_parts, merge_explanations, \
     modify_problem_comment
 from app.core.prompt_image.createImage import generate_images
@@ -29,12 +24,9 @@ from passlib.context import CryptContext
 from fastapi.security import APIKeyCookie
 from starlette.middleware.sessions import SessionMiddleware
 
-
-
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
@@ -44,7 +36,6 @@ templates = Jinja2Templates(directory="templates")
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
 security = APIKeyCookie(name="session")
 
-
 # Dependency(DB 접근 함수)
 def get_db():
     db = SessionLocal()
@@ -53,19 +44,14 @@ def get_db():
     finally:
         db.close()
 
-
 # 세션에서 현재 사용자를 가져오는 함수 정의
 async def get_current_user(request: Request):
     session = request.session
     return session.get("user")
 
-
-
-
 @app.get("/admin_login", response_class=HTMLResponse)
 async def admin_login_web(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
-
 
 # admin=Depends(manager)
 @app.get("/admin_mainpage", response_class=HTMLResponse)
@@ -76,12 +62,10 @@ async def admin_mainpage(request: Request, current_user_admin: dict = Depends(ge
     return templates.TemplateResponse("admin_mainpage.html",
                                       {"request": request, "current_user_admin": current_user_admin})
 
-
 @app.get("/read_create_content/")
 async def read_create_content_root(request: Request):
     print("Attempting to serve create_content.html")  # 디버깅: 요청 처리 시작 출력
     return templates.TemplateResponse("create_content.html", {"request": request})
-
 
 # 유저 생성
 # 프론트앤드에서 오류가 낫을때, 필드의 값을 대채워달라는 메시지 표시(422 Unprocessable Entity 응답일때)
@@ -91,12 +75,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email or nickname already registered")
     return crud.create_user(db=db, user_create=user)
 
-
 @app.get("/users/{user_id}/readuser", response_model=schemas.UserBase)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     user = get_user(db, user_id)
     return user
-
 
 @app.get("/users/check_email/")
 def check_email(email: str, db: Session = Depends(get_db)):
@@ -104,13 +86,11 @@ def check_email(email: str, db: Session = Depends(get_db)):
         return {"is_available": False}
     return {"is_available": True}
 
-
 @app.get("/users/check_nickname/")
 def check_nickname(nickname: str, db: Session = Depends(get_db)):
     if crud.get_user_by_nickname(db, nickname=nickname):
         return {"is_available": False}
     return {"is_available": True}
-
 
 # 사용자 정보를 검색하는 엔드포인트
 @app.get("/users/{e_mail}", response_model=schemas.UserBase)
