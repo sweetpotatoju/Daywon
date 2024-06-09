@@ -37,12 +37,13 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=templates_dir)
+# Static 파일 경로 설정
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
 security = APIKeyCookie(name="session")
-templates = Jinja2Templates(directory=templates_dir)
 
 
 # Dependency(DB 접근 함수)
@@ -53,18 +54,22 @@ def get_db():
     finally:
         db.close()
 
+
 # 세션에서 현재 사용자를 가져오는 함수 정의
 async def get_current_user(request: Request):
     session = request.session
     return session.get("user")
 
+
 @app.get("/admin_login", response_class=HTMLResponse)
 async def admin_login_web(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
-  
+
+
 @app.get("/admin_account_management_page", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("admin_account_ management.html", {"request": request})
+    return templates.TemplateResponse("admin_account_management.html", {"request": request})
+
 
 @app.get("/admin_mainpage", response_class=HTMLResponse)
 async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user)):
@@ -73,6 +78,7 @@ async def admin_mainpage(request: Request, current_user_admin: dict = Depends(ge
     print()
     return templates.TemplateResponse("admin_mainpage.html",
                                       {"request": request, "current_user_admin": current_user_admin})
+
 
 @app.get("/read_create_content/")
 async def read_create_content_root(request: Request):
