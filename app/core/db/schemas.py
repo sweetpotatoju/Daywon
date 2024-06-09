@@ -59,7 +59,7 @@ class UserUpdate(BaseModel):
 ############################################
 class ScriptsBase(BaseModel):
     level: int
-    category_label: int
+    category_id: int
     content_1: str
     content_2: str
     content_3: str
@@ -69,8 +69,15 @@ class ScriptsCreate(ScriptsBase):
     pass
 
 
-class ScriptsRead(ScriptsBase):
+class ScriptsRead(BaseModel):
+    category_label: Optional[int]
+    category_content: Optional[str]
+    level: Optional[int]
     scripts_id: int
+    return_value: Optional[str]  # 반환할 값 필드 추가
+
+    class Config:
+        orm_mode = True
 
 
 class ScriptsUpdate(ScriptsBase):
