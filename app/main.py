@@ -11,8 +11,9 @@ from app.core.db.crud import get_user_by_email, update_user, update_user_points,
     update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name
 from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
-    AdminUpdate, AdminLogin, CreateContentRequest
+    AdminUpdate, AdminLogin, CreateContentRequest, ScriptsRead
 from passlib.context import CryptContext
+from typing import List
 
 from app.core.problem.createProblem import create_problem, combine_problem_parts, merge_explanations, \
     modify_problem_comment
@@ -33,16 +34,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
-templates = Jinja2Templates(directory="templates")
-
-@app.get("/admin_login", response_class=HTMLResponse)
-async def admin_login_web(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
-
-
-@app.get("/admin_mainpage", response_class=HTMLResponse)
-async def admin_mainpage(request: Request):
-    return templates.TemplateResponse("admin_mainpage.html", {"request": request})
+templates = Jinja2Templates(directory=templates_dir)
 
 
 # Dependency(DB 접근 함수)
@@ -54,14 +46,29 @@ def get_db():
         db.close()
 
 
-@app.get("/read_create_content/")
+@app.get("/admin_login", response_class=HTMLResponse)
+async def admin_login_web(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.get("/admin_mainpage", response_class=HTMLResponse)
+async def admin_mainpage(request: Request):
+    return templates.TemplateResponse("admin_mainpage.html", {"request": request})
+
+
+@app.get("/read_create_content")
 async def read_create_content_root(request: Request):
     print("Attempting to serve create_content.html")  # 디버깅: 요청 처리 시작 출력
     return templates.TemplateResponse("create_content.html", {"request": request})
 
 
+@app.get("/read_content_list")
+async def read_content_list_root(request: Request):
+    print("Attempting to serve create_content.html")  # 디버깅: 요청 처리 시작 출력
+    return templates.TemplateResponse("content_list.html", {"request": request})
+
+
 # 유저 생성
-# 프론트앤드에서 오류가 낫을때, 필드의 값을 대채워달라는 메시지 표시(422 Unprocessable Entity 응답일때)
 @app.post("/users/", response_model=UserCreate)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if crud.get_user_by_email(db, e_mail=user.e_mail) or crud.get_user_by_nickname(db, nickname=user.nickname):
@@ -179,6 +186,47 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
 
 #################################################
 
+@app.get("/read_content_list_status/", response_model=List[ScriptsRead])
+def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
+    print(f"Fetching scripts with inspection_status={inspection_status}")
+    scripts = crud.get_scripts_by_inspection_status(db, inspection_status)
+    if scripts is None or len(scripts) == 0:
+        print("No scripts found")
+        raise HTTPException(status_code=404, detail="Scripts not found")
+    print(f"Found {len(scripts)} scripts")
+
+    result = []
+    for script in scripts:
+        category_label = script.categories.label if script.categories else None
+        category_content = script.categories.content if script.categories else None
+        print(f"Script ID: {script.scripts_id}, Category Label: {category_label}, Category Content: {category_content}")
+        if category_label == 1:
+            return_value = "세금"
+        elif category_label == 2:
+            return_value = "재산관리"
+        elif category_label == 3:
+            return_value = "금융시사상식"
+        else:
+            return_value = None
+
+        result.append(ScriptsRead(
+            category_label=category_label,
+            category_content=category_content,
+            level=script.level,  # 필드명을 level로 변경
+            scripts_id=script.scripts_id,
+            return_value=return_value
+        ))
+
+    print(f"Result: {result}")
+    return result
+@app.get("/scripts_read/{scripts_id}")
+def read_script(scripts_id: int, db: Session = Depends(get_db)):
+    db_script = crud.get_script(db, scripts_id=scripts_id)
+    if db_script is None:
+        raise HTTPException(status_code=404, detail="Script not found")
+    return db_script
+
+
 @app.get("/scripts_read/{scripts_id}")
 def read_script(scripts_id: int, db: Session = Depends(get_db)):
     db_script = crud.get_script(db, scripts_id=scripts_id)
@@ -192,7 +240,7 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
     try:
         print(request.label)
         random_category = crud.get_random_category_by_label(db, request.label)
-        categories_name= random_category.content
+        categories_name = random_category.content
         if not categories_name:
             raise HTTPException(status_code=404, detail="Label not found")
 
@@ -489,7 +537,8 @@ def delete_admin(admin_id: int, db: Session = Depends(get_db)):
 
 # 로그인 처리 라우트 핸들러
 @app.post("/admins/login")
-async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
+                      db: Session = Depends(get_db)):
     admin = get_admin_by_admin_name(db, admin_name)
     if not admin or admin.password != password:
         return RedirectResponse(url=f"/admin_login?error=아이디나 비밀번호가 잘못되었습니다", status_code=303)

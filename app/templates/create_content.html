@@ -9,12 +9,29 @@
             font-family: Arial, sans-serif;
             background-color: white;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             box-sizing: border-box;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+        .header {
+            width: 100%;
+            background-color: #ffffff;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .header img {
+            height: 30px;
+        }
+        .header .icons {
+            display: flex;
+            gap: 10px;
         }
         .container {
             width: 100%;
@@ -81,6 +98,12 @@
         .buttons button.active {
             background-color: #1565C0;
         }
+        .level-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
         .level-buttons button {
             width: 50px;
             height: 50px;
@@ -127,6 +150,12 @@
     </style>
 </head>
 <body>
+    <div class="header">
+        <img src="../res/logo.png" alt="Logo">
+        <div class="icons">
+            <img src="path/to/user-icon.png" alt="User Icon">
+        </div>
+    </div>
     <div class="container">
         <div class="title">문제 생성</div>
 
