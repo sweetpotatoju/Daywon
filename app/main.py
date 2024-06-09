@@ -20,12 +20,15 @@ from app.core.problem.createProblem import create_problem, combine_problem_parts
 from app.core.prompt_image.createImage import generate_images
 from app.core.prompt_image.createPrompt import create_prompt, create_case_prompt, modify_prompt, modify_case_prompt
 from app.core.video.createVideo import VideoCreator, ftp_directory
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 # from starlette.templating import Jinja2Templates
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from passlib.context import CryptContext
+from fastapi.security import APIKeyCookie
+from starlette.middleware.sessions import SessionMiddleware
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -34,6 +37,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
+templates = Jinja2Templates(directory="templates")
+
+# 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
+app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
+security = APIKeyCookie(name="session")
 templates = Jinja2Templates(directory=templates_dir)
 
 
@@ -45,18 +53,25 @@ def get_db():
     finally:
         db.close()
 
+# 세션에서 현재 사용자를 가져오는 함수 정의
+async def get_current_user(request: Request):
+    session = request.session
+    return session.get("user")
 
 @app.get("/admin_login", response_class=HTMLResponse)
 async def admin_login_web(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-
+# admin=Depends(manager)
 @app.get("/admin_mainpage", response_class=HTMLResponse)
-async def admin_mainpage(request: Request):
-    return templates.TemplateResponse("admin_mainpage.html", {"request": request})
+async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user)):
+    if not current_user_admin:
+        return RedirectResponse(url="/admin_login", status_code=303)
+    print()
+    return templates.TemplateResponse("admin_mainpage.html",
+                                      {"request": request, "current_user_admin": current_user_admin})
 
-
-@app.get("/read_create_content")
+@app.get("/read_create_content/")
 async def read_create_content_root(request: Request):
     print("Attempting to serve create_content.html")  # 디버깅: 요청 처리 시작 출력
     return templates.TemplateResponse("create_content.html", {"request": request})
@@ -69,6 +84,7 @@ async def read_content_list_root(request: Request):
 
 
 # 유저 생성
+# 프론트앤드에서 오류가 낫을때, 필드의 값을 대채워달라는 메시지 표시(422 Unprocessable Entity 응답일때)
 @app.post("/users/", response_model=UserCreate)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if crud.get_user_by_email(db, e_mail=user.e_mail) or crud.get_user_by_nickname(db, nickname=user.nickname):
@@ -540,9 +556,18 @@ def delete_admin(admin_id: int, db: Session = Depends(get_db)):
 async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
                       db: Session = Depends(get_db)):
     admin = get_admin_by_admin_name(db, admin_name)
+
     if not admin or admin.password != password:
         return RedirectResponse(url=f"/admin_login?error=아이디나 비밀번호가 잘못되었습니다", status_code=303)
-    return RedirectResponse(url="/admin_mainpage", status_code=303)
+
+    session = request.session
+    session["user"] = {
+        "admin_id": admin.admin_id,
+        "admin_name": admin.admin_name,
+        "qualification_level": admin.qualification_level
+    }
+    response = RedirectResponse(url="/admin_mainpage", status_code=303)
+    return response
 
 
 if __name__ == "__main__":

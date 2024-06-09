@@ -108,7 +108,8 @@
     <div class="container">
         <div class="header">
             <img src="../res/logo.png" alt="Logo" class="logo">
-            <div class="greeting">관리자님, 안녕하세요!</div>
+            <div class="greeting" data-admin-level="{{ current_user_admin.qualification_level }}">
+                레벨 {{ current_user_admin.qualification_level }} {{ current_user_admin.admin_name }} 관리자 님, 안녕하세요!</div>
         </div>
         <div class="account-info">
             <div class="count">
@@ -128,8 +129,9 @@
     </div>
 
     <script>
-        // 사용자 권한 레벨 설정 (예시로 레벨 2로 설정)
-        var userLevel = 2;
+        // / 사용자 권한 레벨 설정
+        var userLevel = document.querySelector('.greeting').getAttribute('data-admin-level');
+
 
         // 버튼 요소 가져오기
         var createQuestionBtn = document.getElementById('create-question');
