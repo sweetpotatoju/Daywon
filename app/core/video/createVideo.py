@@ -61,7 +61,8 @@ class VideoCreator:
         self.video_detail_name = ''
         self.font = 'NanumGothic'
         self.fontsize = 60
-        self.color = 'black'
+        self.color = 'white'
+        self.bg_color = 'black'
         self.wrap_width = 20
         self.padding = 20
         self.audio_folder = 'audio'
@@ -98,7 +99,8 @@ class VideoCreator:
             # 이미지 클립과 자막 생성
             clip = ImageClip(path, duration=duration)
             img_width, img_height = clip.size
-            txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, font=self.font, method='label')
+            txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, bg_color=self.bg_color,
+                                font=self.font, method='label')
             txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(
                 duration)
 
