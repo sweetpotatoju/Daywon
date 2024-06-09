@@ -367,6 +367,14 @@ def get_shortform_by_scripts_id(db: Session, scripts_id: int):
     return db.query(Shortform).filter(Shortform.scripts_id == scripts_id).first()
 
 
+def get_admins(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Admin).filter(models.Admin.qualification_level != 3).offset(skip).limit(limit).all()
+
+
+def get_admin_count(db: Session):
+    return db.query(models.Admin).count()
+
+
 # 가장 최근에 추가된 shortform 데이터를 읽어오는 함수
 def get_latest_shortform(db):
     return db.query(Shortform).order_by(desc(Shortform.form_id)).first()
@@ -377,20 +385,32 @@ def get_admin_by_admin_name(db: Session, admin_name: str):
     return db.query(Admin).filter(Admin.admin_name == admin_name).first()
 
 
-def create_admin(db: Session, admin_data: dict, admin_id: int, pwd_context):
-    admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
-    if admin and admin.qualification_level == 3:
-        hashed_password = pwd_context.hash(admin_data['password'])
-        new_admin = Admin(
-            admin_name=admin_data['admin_name'],
-            password=hashed_password,
-            qualification_level=admin_data['qualification_level']
-        )
-        db.add(new_admin)
-        db.commit()
-        db.refresh(new_admin)
-        return new_admin
-    return False
+def get_active_admin_by_admin_name(db: Session, admin_name: str):
+    return db.query(Admin).filter(Admin.admin_name == admin_name, Admin.account_status == True).first()
+
+
+def create_admin(db: Session, admin: schemas.AdminCreate):
+    db_admin = Admin(
+        admin_name=admin.admin_name,
+        qualification_level=admin.qualification_level,
+        password=admin.password,
+        account_status=True
+    )
+    db.add(db_admin)
+    db.commit()
+    db.refresh(db_admin)
+    return db_admin
+
+
+def update_admin(db: Session, admin_id: int, admin_update: schemas.AdminUpdate):
+    db_admin = db.query(models.Admin).filter(models.Admin.admin_id == admin_id).first()
+    if not db_admin:
+        return None
+    db_admin.qualification_level = admin_update.qualification_level
+    db_admin.account_status = admin_update.account_status
+    db.commit()
+    db.refresh(db_admin)
+    return db_admin
 
 
 def delete_admin_if_level_3(db: Session, admin_id: int):
@@ -409,20 +429,22 @@ def get_admin_level(db: Session, admin_id: int):
     return None
 
 
-def update_admin(db: Session, admin_data: dict):
-    admin_id = admin_data.get("admin_id")
+def check_admin_password(db: Session, password: str):
+    admin = db.query(Admin).filter(Admin.qualification_level == 3).first()  # level 3 관리자 계정 확인
+    if not admin:
+        return "fail"
+    if admin.password == password:  # 평문 비밀번호 비교
+        return "success"
+    else:
+        return "fail"
+
+
+def get_user_password(db: Session, admin_id: int):
     admin = db.query(Admin).filter(Admin.admin_id == admin_id).first()
     if admin:
-        if "qualification_level" in admin_data:
-            admin.qualification_level = admin_data["qualification_level"]
-
-            db.commit()
-            db.refresh(admin)
-            return admin
+        return admin.password  # 실제 서비스에서는 비밀번호를 반환하는 대신 다른 보안 조치를 고려해야 함
     return None
 
-
-# history
 
 def create_user_history(db: Session, user_id: int, script_id: int, T_F: bool):
     user_history = History(user_id=user_id, script_id=script_id, T_F=T_F)
