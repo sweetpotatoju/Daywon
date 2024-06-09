@@ -53,15 +53,15 @@ def get_audio(input_text="주식에 대해 알아볼까요?"):
         return f"Failed to save audio: {str(e)}"
 
 
-
 class VideoCreator:
     def __init__(self, clips_info, ftp_directory, video_file_name):
         self.clips_info = clips_info
         self.video_name = 'completed_video'
         self.video_detail_name = ''
-        self.font = 'NanumGothic'
+        self.font = './core/video/font/Jalnan2TTF.ttf'
         self.fontsize = 60
-        self.color = 'black'
+        self.color = 'white'
+        self.bg_color = 'black'
         self.wrap_width = 20
         self.padding = 20
         self.audio_folder = 'audio'
@@ -79,6 +79,13 @@ class VideoCreator:
         """비디오 재생성 시 이름 덮어 씌우기"""
         if video_file_name:
             return video_file_name
+        else:
+            # 비디오 처음 생성 -> 이름 지정
+            video_file_path = f"{self.video_folder}_1.mp4"
+            return video_file_path
+
+    def get_video_file_path(self):
+        return self.video_path
 
     async def create_video(self):
         clips = []
@@ -98,7 +105,8 @@ class VideoCreator:
             # 이미지 클립과 자막 생성
             clip = ImageClip(path, duration=duration)
             img_width, img_height = clip.size
-            txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, font=self.font, method='label')
+            txt_clip = TextClip(wrapped_text, fontsize=self.fontsize, color=self.color, bg_color=self.bg_color,
+                                font=self.font, method='label')
             txt_clip = txt_clip.set_position((self.padding, 'center')).set_position(('center', 'bottom')).set_duration(
                 duration)
 

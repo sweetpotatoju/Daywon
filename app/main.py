@@ -287,25 +287,28 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
         crud.create_case_script(db, case_script_data=case_script_data)
 
         last_file = crud.get_latest_shortform(db)
-        last_file_name = last_file.form_url
-        match = re.search(r'(\d+)', last_file_name)
 
-        if not match:
-            raise ValueError("Filename does not contain a number.")
+        if last_file:
+            last_file_name = last_file.form_url
+            match = re.search(r'(\d+)', last_file_name)
 
-        # 추출된 숫자를 +1 합니다.
-        number = int(match.group(1))
-        incremented_number = number + 1
+            if not match:
+                raise ValueError("Filename does not contain a number.")
 
-        # 새로운 숫자를 포함하여 파일 이름을 생성합니다.
-        new_filename = re.sub(r'\d+', str(incremented_number), last_file_name)
+            # 추출된 숫자를 +1 합니다.
+            number = int(match.group(1))
+            incremented_number = number + 1
+
+            # 새로운 숫자를 포함하여 파일 이름을 생성합니다.
+            new_filename = re.sub(r'\d+', str(incremented_number), last_file_name)
+        else:
+            new_filename = None
 
         clips_info = []
         await generate_images(case_script_split, clips_info)
         video_creator = VideoCreator(clips_info, ftp_directory, new_filename)
+        shortform_name = video_creator.get_video_file_path()
         await video_creator.create_video()
-        shortform_name = new_filename
-
         shortform = {
             "scripts_id": script_id,
             "form_url": shortform_name
