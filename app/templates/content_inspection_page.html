@@ -162,6 +162,50 @@
         function reviewCompleted() {
             alert("검수가 완료되었습니다.");
         }
+
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            const statusMessage = document.getElementById('status-message');
+            const chatBody = document.getElementById('chat-body');
+
+            // 사용자가 입력한 메시지를 보여줌
+            const userMessage = document.createElement('p');
+            userMessage.textContent = `사용자: ${userInput}`;
+            chatBody.appendChild(userMessage);
+
+            // 서버에 메시지 전송
+            try {
+                const response = await fetch(`/modify_concept_scripts/${scriptsId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: userInput
+                    })
+                });
+                const data = await response.json();
+
+                // 서버로부터의 응답을 보여줌
+                const botMessage = document.createElement('p');
+                botMessage.textContent = `챗봇: ${data.response}`;
+                chatBody.appendChild(botMessage);
+                statusMessage.textContent = "수정 완료";
+
+            } catch (error) {
+                console.error('Error:', error);
+                statusMessage.textContent = "수정 실패";
+            }
+
+            // 입력 필드 초기화
+            document.getElementById('user-input').value = '';
+        }
+
+
+
+
+
+
     </script>
 </head>
 <body>
@@ -262,7 +306,7 @@
                 </div>
                 <div class="chat-input">
                     <input type="text" placeholder="메시지를 입력하세요...">
-                    <button>전송</button>
+                    <button onclick="sendMessage()">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
             </div>
