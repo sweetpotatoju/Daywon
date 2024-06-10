@@ -228,7 +228,7 @@
             const listItem = document.createElement('div');
             listItem.className = 'list-item';
             listItem.onclick = () => {
-                window.location.href = `nextpage.html?content=${item.scripts_id}`;
+                window.location.href = `/nextpage/${item.scripts_id}`;
             };
             console.log('Creating list item for:', item); // 데이터 확인
             listItem.innerHTML = `<span>${item.return_value} (${item.category_content}) - 레벨 ${item.level}, ID: ${item.scripts_id}</span>`;

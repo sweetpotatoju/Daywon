@@ -1,10 +1,11 @@
-from fastapi import HTTPException, Form, Depends
+from fastapi import HTTPException, Form, Depends, Response
 import os
 from sqlalchemy.orm import Session
 import re
 
 from starlette.responses import RedirectResponse
 
+from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
@@ -13,7 +14,7 @@ from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
     AdminUpdate, AdminLogin, CreateContentRequest, ScriptsRead
 from passlib.context import CryptContext
-from typing import List
+from typing import List, Optional
 
 from app.core.problem.createProblem import create_problem, combine_problem_parts, merge_explanations, \
     modify_problem_comment
@@ -29,6 +30,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from fastapi.security import APIKeyCookie
 from starlette.middleware.sessions import SessionMiddleware
+from fastapi.responses import StreamingResponse
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -37,7 +39,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
-templates = Jinja2Templates(directory="templates")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
@@ -149,7 +150,6 @@ def update_user_info(user_id: int, update_data: UserUpdate, db: Session = Depend
         "user_id": existing_user.user_id,
         "nickname": existing_user.nickname,
         "profile_image": existing_user.profile_image
-
     }
 
 
@@ -577,6 +577,52 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     }
     response = RedirectResponse(url="/admin_mainpage", status_code=303)
     return response
+
+
+def get_video_stream(file_contents):
+    yield from file_contents
+
+
+@app.get("/nextpage/{content_id}", response_class=HTMLResponse)
+async def content_view(request: Request, content_id: int, db: Session = Depends(get_db)):
+    script_data = crud.get_script(db, content_id)
+    if script_data is None:
+        raise HTTPException(status_code=404, detail="Script not found")
+
+    case_script_data = crud.get_case_scripts_by_script_id(db, content_id)
+    shortform_data = crud.get_shortform_by_scripts_id(db, content_id)
+    problem_data = crud.get_question_by_script_id(db, content_id)
+    comment_data = crud.get_comment_by_script_id(db, content_id)
+
+    remote_video_url = shortform_data.form_url
+    remote_video_url = "completed_video_1.mp4"
+    video_response = None
+
+    if remote_video_url:
+        remote_file_path = f"/video/{remote_video_url}"
+        try:
+            file_contents = read_binary_file_from_ftp(remote_file_path)
+            if file_contents:
+                video_response = StreamingResponse(get_video_stream(file_contents), media_type="video/mp4")
+            else:
+                raise HTTPException(status_code=500, detail="Failed to retrieve video")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+
+    return templates.TemplateResponse("content_view.html", {
+        "request": request,
+        "script_data": script_data,
+        "case_script_data": case_script_data,
+        "shortform_data": shortform_data,
+        "problem_data": problem_data,
+        "comment_data": comment_data,
+        "video_response": video_response  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
+    })
+
+
+@app.get("/get_videos/", response_model=List[str])
+async def get_videos():
+    return list_files()
 
 
 if __name__ == "__main__":
