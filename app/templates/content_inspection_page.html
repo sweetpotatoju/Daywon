@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>콘텐츠 검수 창</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef2f7;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #ffffff;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #dde2e6;
+        }
+        .logo img {
+            height: 40px;
+        }
+        .user-icon img {
+            height: 40px;
+        }
+        .title-section {
+            background-color: #d6e0f5;
+            padding: 1px; /* 크기를 줄이기 위해 패딩을 줄였습니다 */
+            text-align: center;
+            border-bottom: 2px solid #dde2e6;
+            position: relative; /* 상대적 위치를 설정합니다 */
+        }
+        .container {
+            display: flex;
+            height: calc(100vh - 82px); /* 100vh - header height - title section height */
+        }
+        .sidebar {
+            width: 20%;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-right: 2px solid #dde2e6;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .content {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .chatbot {
+            width: 30%;
+            padding: 20px;
+            border-left: 2px solid #dde2e6;
+            background-color: #f8f9fa;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .list-item {
+            margin: 10px 0;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .list-item:hover {
+            background-color: #dde2e6;
+        }
+        .list-item.active {
+            background-color: #c2d1e0; /* 선택된 항목의 배경색 */
+        }
+        .content > div, .chatbot > div {
+            display: none;
+        }
+        .chat-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .chat-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-input {
+            display: flex;
+        }
+        .chat-input input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #dde2e6;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .chat-input button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .chat-input button:hover {
+            background-color: #a0ceff;
+        }
+        .finalize-button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #325985;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .finalize-button:hover {
+            background-color: #5187ef;
+        }
+        .review-button {
+            position: absolute; /* 절대 위치를 설정합니다 */
+            top: 50%; /* 상단에서 50% 위치 */
+            right: 20px; /* 오른쪽에서 20px 위치 */
+            transform: translateY(-50%); /* Y축을 기준으로 중앙 정렬 */
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #325985;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .review-button:hover {
+            background-color: #5187ef;
+        }
+    </style>
+    <script>
+        function showContent(contentId, chatbotId) {
+            const contents = document.querySelectorAll('.content > div');
+            contents.forEach(content => content.style.display = 'none');
+            document.getElementById(contentId).style.display = 'block';
+
+            const chatbots = document.querySelectorAll('.chatbot > div');
+            chatbots.forEach(chatbot => chatbot.style.display = 'none');
+            document.getElementById(chatbotId).style.display = 'block';
+
+            const listItems = document.querySelectorAll('.list-item');
+            listItems.forEach(item => item.classList.remove('active'));
+            document.querySelector(`[onclick="showContent('${contentId}', '${chatbotId}')"]`).classList.add('active');
+        }
+
+        function finalizeChanges() {
+            alert("수정 사항이 최종 결정되었습니다.");
+        }
+
+        function reviewCompleted() {
+            alert("검수가 완료되었습니다.");
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../static/logo.png" alt="DayW Logo"> <!-- 'logo.png'을 실제 로고 이미지 경로로 교체하세요 -->
+        </div>
+        <div class="user-icon">
+            <img src="user-icon.png" alt="User Icon"> <!-- 'user-icon.png'을 실제 사용자 아이콘 이미지 경로로 교체하세요 -->
+        </div>
+    </header>
+    <div class="title-section">
+        <h2>콘텐츠 검수</h2>
+        <button class="review-button" onclick="reviewCompleted()">검수 완료</button>
+    </div>
+    <div class="container">
+        <div class="sidebar">
+            <div class="list-item" onclick="showContent('concept-scripts', 'chatbot1')">개념 스크립트</div>
+            <div class="list-item" onclick="showContent('shortform-examples', 'chatbot2')">숏폼/예시 스크립트 </div>
+            <div class="list-item" onclick="showContent('learning-problems', 'chatbot3')">학습 문제 및 해설</div>
+        </div>
+        <div class="content">
+            <div id="concept-scripts">
+                <h2>개념 스크립트</h2>
+                <p>여기에는 개념에 대한 설명과 예시가 포함됩니다.</p>
+                <ul>
+                    <li>개념 1: 데이터 분석</li>
+                    <li>개념 2: 머신러닝 기초</li>
+                    <li>개념 3: 통계학 개요</li>
+                </ul>
+            </div>
+            <div id="shortform-examples">
+                <h2>숏폼/예시스크립트</h2>
+                <p>여기에는 숏폼 비디오 및 예시 스크립트가 포함됩니다.</p>
+                <ul>
+                    <li>숏폼 1: 데이터 시각화 예시</li>
+                    <li>숏폼 2: 회귀 분석 예시</li>
+                    <li>숏폼 3: 분류 문제 예시</li>
+                </ul>
+            </div>
+            <div id="learning-problems">
+                <h2>학습 문제 및 해설</h2>
+                <p>여기에는 학습 문제와 그 해설이 포함됩니다.</p>
+                <ul>
+                    <li>문제 1: 회귀 분석 문제</li>
+                    <li>문제 2: 분류 문제</li>
+                    <li>문제 3: 클러스터링 문제</li>
+                </ul>
+            </div>
+        </div>
+        <div class="chatbot">
+            <div id="chatbot1">
+                <div class="chat-header">수정사항을 입력해주세요</div>
+                <div class="chat-body">
+                    <p>1번 보기를 문제와 관련된 적절한 답안으로 수정해주세요.</p>
+                    <p>수정ing...</p>
+                    <p>3초 후 자동으로 콘텐츠 화면으로 넘어갑니다.</p>
+                </div>
+                <div class="chat-input">
+                    <input type="text" placeholder="메시지를 입력하세요...">
+                    <button>전송</button>
+                </div>
+                <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
+            </div>
+            <div id="chatbot2">
+                <div class="chat-header">수정사항을 입력해주세요</div>
+                <div class="chat-body">
+                    <p>숏폼 및 예시 스크립트와 관련된 챗봇 대화 내용이 여기에 표시됩니다.</p>
+                </div>
+                <div class="chat-input">
+                    <input type="text" placeholder="메시지를 입력하세요...">
+                    <button>전송</button>
+                </div>
+                <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
+            </div>
+            <div id="chatbot3">
+                <div class="chat-header">수정사항을 입력해주세요</div>
+                <div class="chat-body">
+                    <p>학습 문제 및 해설과 관련된 챗봇 대화 내용이 여기에 표시됩니다.</p>
+                </div>
+                <div class="chat-input">
+                    <input type="text" placeholder="메시지를 입력하세요...">
+                    <button>전송</button>
+                </div>
+                <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
