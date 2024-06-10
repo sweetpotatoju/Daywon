@@ -47,6 +47,7 @@
             width: 50%;
             padding: 20px;
             overflow-y: auto;
+            position: relative; /* 상대적 위치를 설정합니다 */
         }
         .chatbot {
             width: 30%;
@@ -139,6 +140,21 @@
         .review-button:hover {
             background-color: #5187ef;
         }
+        .refresh-button {
+            position: absolute; /* 절대 위치를 설정합니다 */
+            top: 10px; /* 상단에서 10px 위치 */
+            right: 20px; /* 오른쪽에서 20px 위치 */
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .refresh-button:hover {
+            background-color: #0056b3;
+        }
     </style>
     <script>
         function showContent(contentId, chatbotId) {
@@ -161,6 +177,14 @@
 
         function reviewCompleted() {
             alert("검수가 완료되었습니다.");
+        }
+
+        function refreshContent() {
+            const activeContent = document.querySelector('.content > div[style*="display: block"]');
+            if (activeContent) {
+                const contentId = activeContent.id;
+                document.getElementById(contentId).innerHTML += ""; // 간단한 방법으로 콘텐츠를 새로고침
+            }
         }
 
         async function sendMessage() {
@@ -228,6 +252,7 @@
             <div class="list-item" onclick="showContent('learning-problems', 'chatbot3')">학습 문제 및 해설</div>
         </div>
         <div class="content">
+            <button class="refresh-button" onclick="refreshContent()">새로고침</button>
             <div id="concept-scripts">
                 <h2>개념 스크립트</h2>
                 {% if script_data %}
