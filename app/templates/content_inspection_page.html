@@ -151,6 +151,10 @@
             color: white;
             cursor: pointer;
             transition: background-color 0.3s;
+            display: none; /* 초기에는 비활성화 상태로 설정합니다 */
+        }
+        .refresh-button.active {
+            display: inline-block; /* 활성화되면 표시합니다 */
         }
         .refresh-button:hover {
             background-color: #0056b3;
@@ -169,6 +173,9 @@
             const listItems = document.querySelectorAll('.list-item');
             listItems.forEach(item => item.classList.remove('active'));
             document.querySelector(`[onclick="showContent('${contentId}', '${chatbotId}')"]`).classList.add('active');
+
+            const refreshButton = document.querySelector('.refresh-button');
+            refreshButton.classList.add('active'); // 새로고침 버튼 활성화
         }
 
         function finalizeChanges() {
