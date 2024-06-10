@@ -1,3 +1,5 @@
+import io
+
 from fastapi import HTTPException, Form, Depends
 import os
 from sqlalchemy.orm import Session
@@ -31,6 +33,9 @@ from passlib.context import CryptContext
 from fastapi.security import APIKeyCookie
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Response
+from fastapi.responses import StreamingResponse
+from ftplib import FTP, error_perm, error_temp, all_errors
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -41,7 +46,7 @@ app = FastAPI()
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_dir)
 # Static 파일 경로 설정
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+#app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
@@ -632,19 +637,21 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     comment_data = crud.get_comment_by_script_id(db, content_id)
 
     remote_video_url = shortform_data.form_url
-    remote_video_url = "completed_video_1.mp4"
     video_response = None
+    remote_video_url = "completed_video_1.mp4"
 
     if remote_video_url:
         remote_file_path = f"/video/{remote_video_url}"
         try:
             file_contents = read_binary_file_from_ftp(remote_file_path)
             if file_contents:
-                video_response = StreamingResponse(get_video_stream(file_contents), media_type="video/mp4")
+                video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
             else:
                 raise HTTPException(status_code=500, detail="Failed to retrieve video")
         except Exception as e:
             raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+
+    video_url = request.url_for("stream_video", video_path=remote_video_url)
 
     return templates.TemplateResponse("content_view.html", {
         "request": request,
@@ -653,9 +660,20 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
         "shortform_data": shortform_data,
         "problem_data": problem_data,
         "comment_data": comment_data,
-        "video_response": video_response  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
+        "video_url": video_url  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
     })
 
+@app.get("/stream_video/{video_path}")
+async def stream_video(request: Request, video_path: str):
+    remote_file_path = f"/video/{video_path}"
+    try:
+        file_contents = read_binary_file_from_ftp(remote_file_path)
+        if file_contents:
+            return StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
+        else:
+            raise HTTPException(status_code=500, detail="Failed to retrieve video")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
 
 @app.get("/get_videos/", response_model=List[str])
 async def get_videos():
