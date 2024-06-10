@@ -186,30 +186,70 @@
         <div class="content">
             <div id="concept-scripts">
                 <h2>개념 스크립트</h2>
-                <p>여기에는 개념에 대한 설명과 예시가 포함됩니다.</p>
-                <ul>
-                    <li>개념 1: 데이터 분석</li>
-                    <li>개념 2: 머신러닝 기초</li>
-                    <li>개념 3: 통계학 개요</li>
-                </ul>
+                {% if script_data %}
+                    <p>스크립트 id: {{ script_data.scripts_id }}</p>
+                    <ul>
+                        <li>개념 1: {{ script_data.content_1 }}</li>
+                        <li>개념 2: {{ script_data.content_2 }}</li>
+                        <li>개념 3: {{ script_data.content_3 }}</li>
+                    </ul>
+                {% else %}
+                    <p>No script available.</p>
+                {% endif %}
             </div>
             <div id="shortform-examples">
                 <h2>숏폼/예시스크립트</h2>
                 <p>여기에는 숏폼 비디오 및 예시 스크립트가 포함됩니다.</p>
-                <ul>
-                    <li>숏폼 1: 데이터 시각화 예시</li>
-                    <li>숏폼 2: 회귀 분석 예시</li>
-                    <li>숏폼 3: 분류 문제 예시</li>
-                </ul>
+                {% if case_script_data %}
+                    <ul>
+                        <li>숏폼 1: {{ case_script_data.content_1 }}</li>
+                        <li>숏폼 2: {{ case_script_data.content_2 }}</li>
+                        <li>숏폼 3: {{ case_script_data.content_3 }}</li>
+                        <li>숏폼 4: {{ case_script_data.content_4 }}</li>
+                        <li>숏폼 5: {{ case_script_data.content_5 }}</li>
+                        <li>숏폼 6: {{ case_script_data.content_6 }}</li>
+                    </ul>
+                {% else %}
+                    <p>No case script available.</p>
+                {% endif %}
+
+                {% if video_url %}
+                    <div id="video-container">
+                        <video controls width="360" height="640">
+                        <source src="{{ video_url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    {% else %}
+                        <p>영상을 불러오지 못했습니다.</p>
+                    {% endif %}
             </div>
+
             <div id="learning-problems">
                 <h2>학습 문제 및 해설</h2>
-                <p>여기에는 학습 문제와 그 해설이 포함됩니다.</p>
-                <ul>
-                    <li>문제 1: 회귀 분석 문제</li>
-                    <li>문제 2: 분류 문제</li>
-                    <li>문제 3: 클러스터링 문제</li>
-                </ul>
+                {% if problem_data %}
+                <p>{{ problem_data.question }}</p>
+                    <ul>
+                        <li> 1: {{ problem_data.option_1 }}</li>
+                        <li> 2: {{ problem_data.option_2 }}</li>
+                        <li> 3: {{ problem_data.option_3 }}</li>
+                        <li> 4: {{ problem_data.option_4 }}</li>
+                        <li> 정답: {{ problem_data.answer_option }}</li>
+                    </ul>
+                {% else %}
+                    <p>No problems available.</p>
+                {% endif %}
+
+                {% if comment_data %}
+                    <ul>
+                        <li> 해설 1: {{ comment_data.comment_1 }}</li>
+                        <li> 해설 2: {{ comment_data.comment_2 }}</li>
+                        <li> 해설 3: {{ comment_data.comment_3 }}</li>
+                        <li> 해설 4: {{ comment_data.comment_4 }}</li>
+                    </ul>
+                {% else %}
+                    <p>No comments available.</p>
+                {% endif %}
             </div>
         </div>
         <div class="chatbot">

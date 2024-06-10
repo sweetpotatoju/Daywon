@@ -653,7 +653,7 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
 
     video_url = request.url_for("stream_video", video_path=remote_video_url)
 
-    return templates.TemplateResponse("content_view.html", {
+    return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
         "script_data": script_data,
         "case_script_data": case_script_data,
