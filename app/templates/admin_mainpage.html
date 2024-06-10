@@ -32,7 +32,7 @@
             margin-bottom: 20px;
         }
         .logo {
-            width: 150px;
+            height: 70px; /* 로고 크기를 15px로 조정 */
         }
         .greeting {
             font-size: 24px;
@@ -107,7 +107,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="../res/logo.png" alt="Logo" class="logo">
+            <img class="logo" src="../static/logo.png" alt="DayW Logo">
             <div class="greeting" data-admin-level="{{ current_user_admin.qualification_level }}">
                 레벨 {{ current_user_admin.qualification_level }} {{ current_user_admin.admin_name }} 관리자 님, 안녕하세요!</div>
         </div>
@@ -129,9 +129,8 @@
     </div>
 
     <script>
-        // / 사용자 권한 레벨 설정
+        // 사용자 권한 레벨 설정
         var userLevel = document.querySelector('.greeting').getAttribute('data-admin-level');
-
 
         // 버튼 요소 가져오기
         var createQuestionBtn = document.getElementById('create-question');
@@ -176,7 +175,7 @@
 
         manageAccountBtn.addEventListener('click', function() {
             console.log('관리자 계정 관리 버튼 클릭됨');
-            window.location.href = '/manage_account/';
+            window.location.href = '/admin_account_management_page/';
         });
 
     </script>

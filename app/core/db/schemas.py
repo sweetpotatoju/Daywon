@@ -206,24 +206,27 @@ class CommentUpdate(BaseModel):
 
 
 class AdminBase(BaseModel):
-    password: str
+    admin_name: str
+    qualification_level: int
+    account_status: bool
 
 
 class AdminCreate(AdminBase):
-    admin_name: str
     password: str
-    qualification_level: int
-
-
-class AdminRead(AdminBase):
-    admin_id: int
 
 
 class AdminUpdate(BaseModel):
     admin_id: int
-    password: str = None
-    admin_name: str = None
-    qualification_level: int = None
+    qualification_level: int
+    account_status: bool
+
+
+class Admin(AdminBase):
+    admin_id: int
+    password: str
+
+    class Config:
+        orm_mode = True
 
 
 class AdminLogin(BaseModel):
