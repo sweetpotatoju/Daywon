@@ -50,12 +50,16 @@ def parse_problem(origin_problem, level=None, plus_point=None, minus_point=None)
         elif current_key == "options":
             if line.startswith("1."):
                 problem_parts[current_key][1] = line[2:].strip()
+                print(problem_parts[current_key][1])
             elif line.startswith("2."):
                 problem_parts[current_key][2] = line[2:].strip()
+                print(problem_parts[current_key][2])
             elif line.startswith("3."):
                 problem_parts[current_key][3] = line[2:].strip()
+                print(problem_parts[current_key][3])
             elif line.startswith("4."):
                 problem_parts[current_key][4] = line[2:].strip()
+                print(problem_parts[current_key][4])
 
     return problem_parts
 

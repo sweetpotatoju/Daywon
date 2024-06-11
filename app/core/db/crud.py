@@ -94,11 +94,14 @@ def update_rankings(db: Session):
     db.commit()
 
 
-def get_random_category_by_label(db: Session, label: int):
+def get_random_category_content_by_label(db: Session, label: int):
+    print("a")
     categories = db.query(models.Category).filter(models.Category.label == label).all()
     if not categories:
         return None
-    return random.choice(categories)
+    random_category = random.choice(categories)
+    print(random_category.content)
+    return random_category.content
 
 
 def create_category(db: Session, category: schemas.CategoryCreate) -> models.Category:

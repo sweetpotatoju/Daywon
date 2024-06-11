@@ -193,6 +193,73 @@
                 document.getElementById(contentId).innerHTML += ""; // 간단한 방법으로 콘텐츠를 새로고침
             }
         }
+
+        async function sendMessage() {
+            // 입력 필드 요소를 가져옵니다.
+            const userInputField = document.getElementById('user-input');
+            if (!userInputField) {
+                console.error("입력 필드를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 입력 필드의 값을 가져옵니다.
+            const userInput = userInputField.value;
+            const statusMessage = document.getElementById('status-message');
+            const chatBody = document.getElementById('chat-body');
+
+            // script_id 값을 가져옵니다.
+            const chatbotElement = document.getElementById('chatbot1');
+            const scriptsId = chatbotElement.getAttribute('data-scripts-id');
+
+            // scriptsId가 undefined인지 확인합니다.
+            if (!scriptsId) {
+                console.error("scriptsId를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 사용자가 입력한 메시지를 보여줍니다.
+            const userMessage = document.createElement('p');
+            userMessage.textContent = `사용자: ${userInput}`;
+            chatBody.appendChild(userMessage);
+
+            // 서버에 메시지 전송
+            try {
+                const response = await fetch(`/modify_concept_scripts/${scriptsId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        // 서버가 예상하는 필드에 맞춰 요청 본문을 구성합니다.
+                        new_prompt: userInput
+                    })
+                });
+
+                if (!response.ok) {
+                    // 응답이 성공적이지 않은 경우 에러를 던집니다.
+                    const errorData = await response.json();
+                    console.error('Error:', errorData);  // 응답 데이터를 콘솔에 출력하여 확인
+                    throw new Error(`Error ${response.status}: ${JSON.stringify(errorData)}`);
+                }
+
+                const data = await response.json();
+
+                // 서버로부터의 응답을 보여줍니다.
+                const botMessage = document.createElement('p');
+                botMessage.textContent = `챗봇: ${data.response}`;
+                chatBody.appendChild(botMessage);
+                statusMessage.textContent = "수정 완료";
+
+            } catch (error) {
+                console.error('Error:', error);
+                statusMessage.textContent = "수정 실패";
+            }
+
+            // 입력 필드를 초기화합니다.
+            userInputField.value = '';
+        }
+
+
     </script>
 </head>
 <body>
@@ -218,43 +285,83 @@
             <button class="refresh-button" onclick="refreshContent()">새로고침</button>
             <div id="concept-scripts">
                 <h2>개념 스크립트</h2>
-                <p>여기에는 개념에 대한 설명과 예시가 포함됩니다.</p>
-                <ul>
-                    <li>개념 1: 데이터 분석</li>
-                    <li>개념 2: 머신러닝 기초</li>
-                    <li>개념 3: 통계학 개요</li>
-                </ul>
+                {% if script_data %}
+                    <p>스크립트 id: {{ script_data.scripts_id }}</p>
+                    <ul>
+                        <li>개념 1: {{ script_data.content_1 }}</li>
+                        <li>개념 2: {{ script_data.content_2 }}</li>
+                        <li>개념 3: {{ script_data.content_3 }}</li>
+                    </ul>
+                {% else %}
+                    <p>No script available.</p>
+                {% endif %}
             </div>
             <div id="shortform-examples">
                 <h2>숏폼/예시스크립트</h2>
                 <p>여기에는 숏폼 비디오 및 예시 스크립트가 포함됩니다.</p>
-                <ul>
-                    <li>숏폼 1: 데이터 시각화 예시</li>
-                    <li>숏폼 2: 회귀 분석 예시</li>
-                    <li>숏폼 3: 분류 문제 예시</li>
-                </ul>
+                {% if case_script_data %}
+                    <ul>
+                        <li>1: {{ case_script_data.content_1 }}</li>
+                        <li>2: {{ case_script_data.content_2 }}</li>
+                        <li>3: {{ case_script_data.content_3 }}</li>
+                        <li>4: {{ case_script_data.content_4 }}</li>
+                        <li>5: {{ case_script_data.content_5 }}</li>
+                        <li>6: {{ case_script_data.content_6 }}</li>
+                    </ul>
+                {% else %}
+                    <p>No case script available.</p>
+                {% endif %}
+
+                {% if video_url %}
+                    <div id="video-container">
+                        <video controls width="360" height="640">
+                        <source src="{{ video_url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    {% else %}
+                        <p>영상을 불러오지 못했습니다.</p>
+                    {% endif %}
             </div>
+
             <div id="learning-problems">
                 <h2>학습 문제 및 해설</h2>
-                <p>여기에는 학습 문제와 그 해설이 포함됩니다.</p>
-                <ul>
-                    <li>문제 1: 회귀 분석 문제</li>
-                    <li>문제 2: 분류 문제</li>
-                    <li>문제 3: 클러스터링 문제</li>
-                </ul>
+                {% if problem_data %}
+                <p>{{ problem_data.question }}</p>
+                    <ul>
+                        <li> 1: {{ problem_data.option_1 }}</li>
+                        <li> 2: {{ problem_data.option_2 }}</li>
+                        <li> 3: {{ problem_data.option_3 }}</li>
+                        <li> 4: {{ problem_data.option_4 }}</li>
+                        <li> 정답: {{ problem_data.answer_option }}</li>
+                    </ul>
+                {% else %}
+                    <p>No problems available.</p>
+                {% endif %}
+
+                {% if comment_data %}
+                    <ul>
+                        <li> 해설 1: {{ comment_data.comment_1 }}</li>
+                        <li> 해설 2: {{ comment_data.comment_2 }}</li>
+                        <li> 해설 3: {{ comment_data.comment_3 }}</li>
+                        <li> 해설 4: {{ comment_data.comment_4 }}</li>
+                    </ul>
+                {% else %}
+                    <p>No comments available.</p>
+                {% endif %}
             </div>
         </div>
         <div class="chatbot">
-            <div id="chatbot1">
+            <div id="chatbot1" data-scripts-id="{{ script_data.scripts_id }}">
                 <div class="chat-header">수정사항을 입력해주세요</div>
-                <div class="chat-body">
+                <div class="chat-body" id="chat-body">
                     <p>1번 보기를 문제와 관련된 적절한 답안으로 수정해주세요.</p>
-                    <p>수정ing...</p>
+                    <p id="status-message">수정ing...</p>
                     <p>3초 후 자동으로 콘텐츠 화면으로 넘어갑니다.</p>
                 </div>
                 <div class="chat-input">
-                    <input type="text" placeholder="메시지를 입력하세요...">
-                    <button>전송</button>
+                    <input type="text" id="user-input" placeholder="메시지를 입력하세요...">
+                    <button onclick="sendMessage()">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
             </div>
