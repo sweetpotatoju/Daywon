@@ -241,17 +241,6 @@
             loadingMessage.style.display = 'block';
             overlay.style.display = 'block';
 
-            // 3초 후에 팝업을 숨기고 페이지를 이동
-            setTimeout(() => {
-                loadingMessage.style.display = 'none';
-                overlay.style.display = 'none';
-                if (level === 1) {
-                    window.location.href = '/admin_mainpage'; // 메인 페이지로 이동
-                } else {
-                    window.location.href = '/read_content_list'; // 검수리스트 페이지로 이동
-                }
-            }, 3000);
-
             try {
                 const response = await fetch('/create_content/', {
                     method: 'POST',
@@ -264,15 +253,23 @@
                 if (response.ok) {
                     const data = await response.json();
                     console.log('서버로부터 받은 데이터:', data); // 디버깅용 콘솔 출력
+                    if (data.message === "Content modify successfully") {
+                        loadingMessage.style.display = 'none';
+                        overlay.style.display = 'none';
+                    }
                     alert(`카테고리: ${data.category}, 레벨: ${data.level}의 문제가 생성되었습니다.`);
                 } else {
                     const errorData = await response.json();
                     console.error('문제 생성 실패:', errorData);
                     alert(`문제 생성에 실패했습니다: ${errorData.detail}`);
+                    loadingMessage.style.display = 'none';
+                    overlay.style.display = 'none';
                 }
             } catch (error) {
                 console.error('요청 중 오류 발생:', error);
                 alert('요청 중 오류가 발생했습니다.');
+                loadingMessage.style.display = 'none';
+                overlay.style.display = 'none';
             }
         });
     </script>

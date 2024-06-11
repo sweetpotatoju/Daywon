@@ -188,11 +188,29 @@
         }
 
         async function sendMessage() {
-            const userInput = document.getElementById('user-input').value;
+            // 입력 필드 요소를 가져옵니다.
+            const userInputField = document.getElementById('user-input');
+            if (!userInputField) {
+                console.error("입력 필드를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 입력 필드의 값을 가져옵니다.
+            const userInput = userInputField.value;
             const statusMessage = document.getElementById('status-message');
             const chatBody = document.getElementById('chat-body');
 
-            // 사용자가 입력한 메시지를 보여줌
+            // script_id 값을 가져옵니다.
+            const chatbotElement = document.getElementById('chatbot1');
+            const scriptsId = chatbotElement.getAttribute('data-scripts-id');
+
+            // scriptsId가 undefined인지 확인합니다.
+            if (!scriptsId) {
+                console.error("scriptsId를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 사용자가 입력한 메시지를 보여줍니다.
             const userMessage = document.createElement('p');
             userMessage.textContent = `사용자: ${userInput}`;
             chatBody.appendChild(userMessage);
@@ -205,12 +223,21 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        message: userInput
+                        // 서버가 예상하는 필드에 맞춰 요청 본문을 구성합니다.
+                        new_prompt: userInput
                     })
                 });
+
+                if (!response.ok) {
+                    // 응답이 성공적이지 않은 경우 에러를 던집니다.
+                    const errorData = await response.json();
+                    console.error('Error:', errorData);  // 응답 데이터를 콘솔에 출력하여 확인
+                    throw new Error(`Error ${response.status}: ${JSON.stringify(errorData)}`);
+                }
+
                 const data = await response.json();
 
-                // 서버로부터의 응답을 보여줌
+                // 서버로부터의 응답을 보여줍니다.
                 const botMessage = document.createElement('p');
                 botMessage.textContent = `챗봇: ${data.response}`;
                 chatBody.appendChild(botMessage);
@@ -221,13 +248,9 @@
                 statusMessage.textContent = "수정 실패";
             }
 
-            // 입력 필드 초기화
-            document.getElementById('user-input').value = '';
+            // 입력 필드를 초기화합니다.
+            userInputField.value = '';
         }
-
-
-
-
 
 
     </script>
@@ -322,15 +345,15 @@
             </div>
         </div>
         <div class="chatbot">
-            <div id="chatbot1">
+            <div id="chatbot1" data-scripts-id="{{ script_data.scripts_id }}">
                 <div class="chat-header">수정사항을 입력해주세요</div>
-                <div class="chat-body">
+                <div class="chat-body" id="chat-body">
                     <p>1번 보기를 문제와 관련된 적절한 답안으로 수정해주세요.</p>
-                    <p>수정ing...</p>
+                    <p id="status-message">수정ing...</p>
                     <p>3초 후 자동으로 콘텐츠 화면으로 넘어갑니다.</p>
                 </div>
                 <div class="chat-input">
-                    <input type="text" placeholder="메시지를 입력하세요...">
+                    <input type="text" id="user-input" placeholder="메시지를 입력하세요...">
                     <button onclick="sendMessage()">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>

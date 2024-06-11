@@ -315,8 +315,7 @@ def read_script(scripts_id: int, db: Session = Depends(get_db)):
 async def create_content(request: CreateContentRequest, db: Session = Depends(get_db)):
     try:
         print(request.label)
-        random_category = crud.get_random_category_by_label(db, request.label)
-        categories_name = random_category.content
+        categories_name = crud.get_random_category_content_by_label(db, request.label)
         if not categories_name:
             raise HTTPException(status_code=404, detail="Label not found")
 
@@ -332,6 +331,7 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
             "content_3": parts[2],
             "inspection_status": False
         }
+
         script_id = crud.create_script(db=db, script_data=conceptual_script_data)
         print(script_id)
         case_script_split = await create_case_prompt(category)
