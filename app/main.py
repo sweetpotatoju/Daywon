@@ -79,12 +79,22 @@ async def read_root(request: Request):
 
 
 @app.get("/admin_mainpage", response_class=HTMLResponse)
-async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user)):
+async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     if not current_user_admin:
         return RedirectResponse(url="/admin_login", status_code=303)
+
+    created_problem_count = crud.get_created_problem(db=db)
+    true_questions_count = crud.get_true_questions_count(db=db)
+    user_count = crud.get_user_count(db=db)
+
     print()
+
     return templates.TemplateResponse("admin_mainpage.html",
-                                      {"request": request, "current_user_admin": current_user_admin})
+                                      {"request": request,
+                                       "current_user_admin": current_user_admin,
+                                       "created_problem_count": created_problem_count,
+                                       "true_questions_count": true_questions_count,
+                                       "user_count": user_count})
 
 
 @app.get("/read_create_content/")
