@@ -524,3 +524,23 @@ def update_inspection_status(db: Session, scripts_id: int):
         db.commit()
 
     return script.inspection_status
+
+
+def get_scripts(db: Session):
+    return db.query(Scripts).all()
+
+
+def get_questions(db: Session):
+    return db.query(Question).all()
+
+
+def get_comments(db: Session):
+    return db.query(Comment).all()
+
+
+def get_case_scripts(db: Session):
+    return db.query(CaseScripts).all()
+
+
+def get_shortform(db: Session):
+    return db.query(Shortform).all()

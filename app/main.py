@@ -1,5 +1,5 @@
 import io
-
+import uvicorn
 from fastapi import HTTPException, Form, Depends
 import os
 
@@ -716,8 +716,23 @@ async def stream_video(request: Request, video_path: str):
 async def get_videos():
     return list_files()
 
+@app.get("/refresh_data/")
+async def refresh_data( db: Session = Depends(get_db)):
+    scripts = crud.get_scripts(db)
+    questions = crud.get_questions(db)
+    comments = crud.get_comments(db)
+    case_scripts = crud.get_case_scripts(db)
+    shortform = crud.get_shortform(db)
+
+    return {
+        "script_data": scripts,
+        "problem_data": questions,
+        "comment_data": comments,
+        "case_script_data": case_scripts,
+        "shortform": shortform
+    }
+
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="127.0.0.1", port=8000)

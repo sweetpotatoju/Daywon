@@ -228,11 +228,7 @@
         }
 
         function refreshContent() {
-            const activeContent = document.querySelector('.content > div[style*="display: block"]');
-            if (activeContent) {
-                const contentId = activeContent.id;
-                document.getElementById(contentId).innerHTML += ""; // 간단한 방법으로 콘텐츠를 새로고침
-            }
+            //새로 고침 함수
         }
 
         async function sendMessage(chatbotType) {
