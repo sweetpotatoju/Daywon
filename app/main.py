@@ -6,6 +6,9 @@ import os
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import re
+
+from starlette.middleware.cors import CORSMiddleware
+
 from app.core.problem.chatbot import router as chat_router
 from starlette.responses import RedirectResponse
 
@@ -53,6 +56,14 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
 security = APIKeyCookie(name="session")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 모든 출처 허용
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드를 허용
+    allow_headers=["*"],  # 모든 HTTP 헤더를 허용
+)
 
 
 # Dependency(DB 접근 함수)
@@ -631,7 +642,7 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
                       db: Session = Depends(get_db)):
     admin = crud.get_active_admin_by_admin_name(db, admin_name)
     if not admin or admin.password != password:
-        return RedirectResponse(url=f"/admin_login?error=아이디나 비밀번호가 잘못되었습니다", status_code=303)
+        return {"fail"}
 
     session = request.session
     session["user"] = {
