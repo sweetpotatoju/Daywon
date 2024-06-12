@@ -514,3 +514,9 @@ def get_true_questions_count(db: Session):
 def get_user_count(db: Session):
     count = db.query(func.count(User.user_id)).scalar()
     return count
+
+
+def update_inspection_status(db: Session, scripts_id: int):
+    script = db.query(Scripts).filter(Scripts.scripts_id == scripts_id).first()
+    script.inspection_status = True
+    return script.inspection_status

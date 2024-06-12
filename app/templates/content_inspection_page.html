@@ -182,8 +182,50 @@
             alert("수정 사항이 최종 결정되었습니다.");
         }
 
-        function reviewCompleted() {
-            alert("검수가 완료되었습니다.");
+        function reviewCompleted(scriptsId, inspection_status) {
+            console.log(' 검수 scriptsId :', scriptsId);
+            console.log(' 검수 inspection_status :', inspection_status);
+
+            if (!scriptsId) {
+                alert("scriptsId를 불러오지 못해 검수에 실패하였습니다.");
+            }
+            else {
+
+                //var scriptsId = document.querySelector('.chatbot').dataset.scriptsId; // 스크립트 ID 가져오기
+                // AJAX 또는 Fetch API를 사용하여 POST 요청 보내기
+                fetch(`/update_inspection_status/${scriptsId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // 필요시 다른 헤더 추가 가능
+                    },
+                    // body에 필요한 데이터를 추가할 수 있습니다.
+                    body: JSON.stringify({
+                        // 원하는 경우 다른 데이터를 추가할 수 있습니다.
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 요청에 대한 응답 처리
+                    console.log(data);
+                    // 요청이 성공하면 알림 창을 띄웁니다.
+                    alert("검수가 완료되었습니다.");
+                    window.location.href = "/read_content_list"; // content_list.html로 이동
+                })
+                .catch(error => {
+                    // 요청 실패 시 처리
+                    console.error('Error:', error);
+                    // 실패 시 알림을 띄울 수도 있습니다.
+                    alert("검수를 완료하지 못했습니다. 오류가 발생했습니다.");
+                });
+
+            }
+
         }
 
         function refreshContent() {
@@ -285,7 +327,7 @@
     </header>
     <div class="title-section">
         <h2>콘텐츠 검수</h2>
-        <button class="review-button" onclick="reviewCompleted()">검수 완료</button>
+        <button class="review-button" onclick="reviewCompleted('{{ script_data.scripts_id }}', '{{ script_data.inspection_status }}')">검수 완료</button>
     </div>
     <div class="container">
         <div class="sidebar">
