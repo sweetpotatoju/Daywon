@@ -1,5 +1,5 @@
 import io
-
+import uvicorn
 from fastapi import HTTPException, Form, Depends
 import os
 
@@ -497,7 +497,10 @@ async def modify_scripts(scripts_id: int, request: ModifyScriptRequest, db: Sess
         "option_4": new_problem_parts["options"][4],
         "answer_option": new_problem_parts["answer_option"],  # 정답 번호
     }
-    q_id = crud.get_question_by_script_id(db, scripts_id=scripts_id).q_id
+
+    result = crud.get_question_by_script_id(db, scripts_id=scripts_id)
+    q_id = result.q_id if result else scripts_id
+
     crud.update_question(db, q_id=q_id, update_data=update_problem_data)
 
     comment_data = {
@@ -512,7 +515,7 @@ async def modify_scripts(scripts_id: int, request: ModifyScriptRequest, db: Sess
     return {"message": "Content modify successfully"}
 
 
-@app.post("/modify_case_scripts/{case_scripts_id}")
+@app.post("/modify_case_scripts/{scripts_id}")
 async def modify_case_scripts(scripts_id: int, request: ModifyScriptRequest, db: Session = Depends(get_db)):
     db_case_script = crud.get_case_scripts_by_script_id(db, scripts_id=scripts_id)
     if not db_case_script:
@@ -622,9 +625,9 @@ async def modify_problem(scripts_id: int, request: ModifyScriptRequest, db: Sess
 
 @app.post("/update_inspection_status/{scripts_id}")
 async def update_inspection_status_true(scripts_id: int, db: Session = Depends(get_db)):
-    response = crud.update_inspection_status(db, scripts_id)
-
-    return {"scripts_id": scripts_id, "inspection_status": response}
+    inspection_status = crud.update_inspection_status(db, scripts_id)
+    print(inspection_status)
+    return {"scripts_id": scripts_id, "inspection_status": inspection_status}
 
 
 # admin
@@ -710,19 +713,22 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     remote_video_url = shortform_data.form_url
     video_response = None
     remote_video_url = "completed_video_1.mp4"
-
+    video_url = None
     if remote_video_url:
         remote_file_path = f"/video/{remote_video_url}"
         try:
             file_contents = read_binary_file_from_ftp(remote_file_path)
+
             if file_contents:
                 video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
+                video_url = request.url_for("stream_video", video_path=remote_video_url)
             else:
-                raise HTTPException(status_code=500, detail="Failed to retrieve video")
+                #raise HTTPException(status_code=500, detail="Failed to retrieve video")
+                video_url = None
         except Exception as e:
-            raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
-
-    video_url = request.url_for("stream_video", video_path=remote_video_url)
+            #raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+            video_url = None
+    #video_url = request.url_for("stream_video", video_path=remote_video_url)
 
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
@@ -752,8 +758,23 @@ async def stream_video(request: Request, video_path: str):
 async def get_videos():
     return list_files()
 
+@app.get("/refresh_data/")
+async def refresh_data( db: Session = Depends(get_db)):
+    scripts = crud.get_scripts(db)
+    questions = crud.get_questions(db)
+    comments = crud.get_comments(db)
+    case_scripts = crud.get_case_scripts(db)
+    shortform = crud.get_shortform(db)
+
+    return {
+        "script_data": scripts,
+        "problem_data": questions,
+        "comment_data": comments,
+        "case_script_data": case_scripts,
+        "shortform": shortform
+    }
+
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="127.0.0.1", port=8000)

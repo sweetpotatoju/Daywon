@@ -190,17 +190,32 @@ async def modify_problem_comment(original_problem, new_prompt):
 
 
 def combine_problem_parts(problem_parts, comment):
-    combined_dict = {
-        "문제": problem_parts.question,
-        "보기": {
-            1: problem_parts.option_1,
-            2: problem_parts.option_2,
-            3: problem_parts.option_3,
-            4: problem_parts.option_4,
-        },
-        "정답": problem_parts.answer_option,
-        "explanation": comment
-    }
+    combined_dict = {}
+    if problem_parts:
+        combined_dict = {
+            "문제": problem_parts.question if problem_parts.question is not None else "",
+            "보기": {
+                1: problem_parts.option_1 if problem_parts.option_1 is not None else "",
+                2: problem_parts.option_2 if problem_parts.option_2 is not None else "",
+                3: problem_parts.option_3 if problem_parts.option_3 is not None else "",
+                4: problem_parts.option_4 if problem_parts.option_4 is not None else "",
+            },
+            "정답": problem_parts.answer_option if problem_parts.answer_option is not None else 0,
+            "explanation": comment if comment is not None else ""
+        }
+    else:
+        combined_dict = {
+            "문제": "",
+            "보기": {
+                1: "",
+                2: "",
+                3: "",
+                4: "",
+            },
+            "정답": 0,
+            "explanation":  ""
+        }
+
     return combined_dict
 
 
