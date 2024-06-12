@@ -51,7 +51,7 @@ app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_dir)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
@@ -618,6 +618,13 @@ async def modify_problem(scripts_id: int, request: ModifyScriptRequest, db: Sess
         return {"message": "Script updated successfully"}
     else:
         raise HTTPException(status_code=500, detail="Failed to update script")
+
+
+@app.post("/update_inspection_status/{scripts_id}")
+async def update_inspection_status_true(scripts_id: int, db: Session = Depends(get_db)):
+    response = crud.update_inspection_status(db, scripts_id)
+
+    return {"scripts_id": scripts_id, "inspection_status": response}
 
 
 # admin
