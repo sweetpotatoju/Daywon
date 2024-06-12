@@ -109,13 +109,13 @@
         <div class="header">
             <img class="logo" src="../static/logo.png" alt="DayW Logo">
             <div class="greeting" data-admin-level="{{ current_user_admin.qualification_level }}">
-                레벨 {{ current_user_admin.qualification_level }} {{ current_user_admin.admin_name }} 관리자 님, 안녕하세요!</div>
+                관리자 {{ current_user_admin.admin_name }}님, 안녕하세요!</div>
         </div>
         <div class="account-info">
             <div class="count">
-                <p>생성된 문제 개수: 1004개</p>
-                <p>검토 완료된 문제 개수: 768개</p>
-                <p>이용자 수: 540명</p>
+                <p>생성된 문제 개수: {{created_problem_count}}</p>
+                <p>검토 완료된 문제 개수: {{true_questions_count}}</p>
+                <p>이용자 수: {{user_count}}</p>
             </div>
         </div>
         <div class="section-title">

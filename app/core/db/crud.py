@@ -1,10 +1,11 @@
 import random
 from typing import Any
 
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 from app.core.db import models, schemas
-from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking, CaseScripts, Comment, Category
+from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking, CaseScripts, Comment, Category, \
+    User
 from passlib.hash import bcrypt
 
 from app.core.db.schemas import CategoryCreate, CategoryUpdate
@@ -495,3 +496,21 @@ def update_ranking_points(db: Session, user_id: int, new_points):
         db.commit()
         return ranking
     return None
+
+
+# 생성된 문제 개수
+def get_created_problem(db: Session):
+    count = db.query(func.count(Scripts.scripts_id)).scalar()
+    return count
+
+
+# 검토 완료된 문제 개수
+def get_true_questions_count(db: Session):
+    count = db.query(func.count(Scripts.scripts_id)).filter(Scripts.inspection_status == True).scalar()
+    return count
+
+
+# 사용자 수
+def get_user_count(db: Session):
+    count = db.query(func.count(User.user_id)).scalar()
+    return count
