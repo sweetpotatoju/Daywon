@@ -46,7 +46,7 @@ app = FastAPI()
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_dir)
 # Static 파일 경로 설정
-#app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
@@ -295,6 +295,8 @@ def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
 
     print(f"Result: {result}")
     return result
+
+
 @app.get("/scripts_read/{scripts_id}")
 def read_script(scripts_id: int, db: Session = Depends(get_db)):
     db_script = crud.get_script(db, scripts_id=scripts_id)
@@ -313,6 +315,7 @@ def read_script(scripts_id: int, db: Session = Depends(get_db)):
 
 @app.post("/create_content/")
 async def create_content(request: CreateContentRequest, db: Session = Depends(get_db)):
+    global new_file_name
     try:
         print(request.label)
         categories_name = crud.get_random_category_content_by_label(db, request.label)
@@ -347,10 +350,15 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
         crud.create_case_script(db, case_script_data=case_script_data)
 
         last_file = crud.get_latest_shortform(db)
-
+        new_filename = None
         if last_file:
+            print("a")
             last_file_name = last_file.form_url
-            match = re.search(r'(\d+)', last_file_name)
+            print("a")
+            print(last_file_name)
+
+            # 정규식을 사용하여 숫자를 추출합니다.
+            match = re.search(r'(\d+)(?=\.\w+$)', last_file_name)
 
             if not match:
                 raise ValueError("Filename does not contain a number.")
@@ -359,15 +367,18 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
             number = int(match.group(1))
             incremented_number = number + 1
 
-            # 새로운 숫자를 포함하여 파일 이름을 생성합니다.
-            new_filename = re.sub(r'\d+', str(incremented_number), last_file_name)
+            # 새로운 파일 이름을 생성합니다.
+            new_filename = re.sub(r'(\d+)(?=\.\w+$)', str(incremented_number), last_file_name)
+            print(new_filename)  # "completed_video_8.mp4"
         else:
             new_filename = None
 
         clips_info = []
         await generate_images(case_script_split, clips_info)
+        print(new_filename)
         video_creator = VideoCreator(clips_info, ftp_directory, new_filename)
         shortform_name = video_creator.get_video_file_path()
+        print(f"어이어이{shortform_name}")
         await video_creator.create_video()
         shortform = {
             "scripts_id": script_id,
@@ -379,6 +390,7 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
         combined_case_script = " ".join(case_script_split)
 
         problem_parts = await create_problem(combined_conceptual_script, combined_case_script, level)
+        print(problem_parts)
         problem_data = {
             "scripts_id": script_id,
             "plus_point": problem_parts["plus_point"],
@@ -663,6 +675,7 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
         "video_url": video_url  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
     })
 
+
 @app.get("/stream_video/{video_path}")
 async def stream_video(request: Request, video_path: str):
     remote_file_path = f"/video/{video_path}"
@@ -674,6 +687,7 @@ async def stream_video(request: Request, video_path: str):
             raise HTTPException(status_code=500, detail="Failed to retrieve video")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+
 
 @app.get("/get_videos/", response_model=List[str])
 async def get_videos():

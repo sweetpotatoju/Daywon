@@ -75,13 +75,16 @@ class VideoCreator:
         os.makedirs(self.audio_folder, exist_ok=True)
         os.makedirs(self.video_folder, exist_ok=True)
 
-    def create_video_file_name(self, video_file_name=None):
+    def create_video_file_name(self, video_file_name):
+        print(video_file_name)
         """비디오 재생성 시 이름 덮어 씌우기"""
         if video_file_name:
+            print("CCCCCc")
             return video_file_name
         else:
             # 비디오 처음 생성 -> 이름 지정
             video_file_path = f"{self.video_folder}_1.mp4"
+            print("a b")
             return video_file_path
 
     def get_video_file_path(self):
