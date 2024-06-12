@@ -628,12 +628,12 @@ async def update_inspection_status_true(scripts_id: int, db: Session = Depends(g
 
 
 # admin
-@app.post("/admins/create/{admin_id}")
-def create_admin(admin_id: int, admin_data: AdminCreate, db: Session = Depends(get_db)):
-    new_admin = crud.create_admin(db, admin_data.dict(), admin_id, pwd_context)
-    if not new_admin:
+@app.post("/admins/read_level/{admin_name}")
+def read_admin_level(admin_name: str, db: Session = Depends(get_db)):
+    admin = crud.get_admin_by_admin_name(db, admin_name)
+    if not admin:
         raise HTTPException(status_code=403, detail="Admin not authorized to create a new admin")
-    return new_admin
+    return {"level": admin}
 
 
 @app.delete("/admins/delete/{admin_id}")
@@ -660,6 +660,20 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     response = RedirectResponse(url="/admin_mainpage", status_code=303)
     return response
 
+@app.post("/admins/login_mobile")
+async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
+                      db: Session = Depends(get_db)):
+    admin = crud.get_active_admin_by_admin_name(db, admin_name)
+    if not admin or admin.password != password:
+        return {"status": "fail"}
+
+    session = request.session
+    session["user"] = {
+        "admin_id": admin.admin_id,
+        "admin_name": admin.admin_name,
+        "qualification_level": admin.qualification_level
+    }
+    return {"status": "success"}  # 성공 시 명확한 메시지 반환
 
 def get_video_stream(file_contents):
     yield from file_contents

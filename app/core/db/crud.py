@@ -385,8 +385,9 @@ def get_latest_shortform(db):
 
 
 # admin
-def get_admin_by_admin_name(db: Session, admin_name: str):
-    return db.query(Admin).filter(Admin.admin_name == admin_name).first()
+def get_admin_by_admin_name(db: Session, admin_name: str) -> object:
+    db_admin=db.query(Admin).filter(Admin.admin_name == admin_name).first()
+    return db_admin.qualification_level
 
 
 def get_active_admin_by_admin_name(db: Session, admin_name: str):
