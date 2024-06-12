@@ -46,7 +46,7 @@ app = FastAPI()
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_dir)
 # Static 파일 경로 설정
-# app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
@@ -79,22 +79,12 @@ async def read_root(request: Request):
 
 
 @app.get("/admin_mainpage", response_class=HTMLResponse)
-async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user)):
     if not current_user_admin:
         return RedirectResponse(url="/admin_login", status_code=303)
-
-    created_problem_count = crud.get_created_problem(db=db)
-    true_questions_count = crud.get_true_questions_count(db=db)
-    user_count = crud.get_user_count(db=db)
-
     print()
-
     return templates.TemplateResponse("admin_mainpage.html",
-                                      {"request": request,
-                                       "current_user_admin": current_user_admin,
-                                       "created_problem_count": created_problem_count,
-                                       "true_questions_count": true_questions_count,
-                                       "user_count": user_count})
+                                      {"request": request, "current_user_admin": current_user_admin})
 
 
 @app.get("/read_create_content/")
@@ -305,8 +295,6 @@ def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
 
     print(f"Result: {result}")
     return result
-
-
 @app.get("/scripts_read/{scripts_id}")
 def read_script(scripts_id: int, db: Session = Depends(get_db)):
     db_script = crud.get_script(db, scripts_id=scripts_id)
@@ -675,7 +663,6 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
         "video_url": video_url  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
     })
 
-
 @app.get("/stream_video/{video_path}")
 async def stream_video(request: Request, video_path: str):
     remote_file_path = f"/video/{video_path}"
@@ -687,7 +674,6 @@ async def stream_video(request: Request, video_path: str):
             raise HTTPException(status_code=500, detail="Failed to retrieve video")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
-
 
 @app.get("/get_videos/", response_model=List[str])
 async def get_videos():
