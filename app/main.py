@@ -2,6 +2,8 @@ import io
 
 from fastapi import HTTPException, Form, Depends
 import os
+
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import re
 
@@ -36,6 +38,7 @@ from fastapi.responses import StreamingResponse
 from fastapi import FastAPI, Response
 from fastapi.responses import StreamingResponse
 from ftplib import FTP, error_perm, error_temp, all_errors
+from app.core.problem.chatbot import *
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -45,8 +48,8 @@ app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_dir)
-# Static 파일 경로 설정
-# app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
@@ -60,6 +63,22 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+
+
+class Message(BaseModel):
+    message: str
+
+
+@app.post("/chatbot")
+async def chat(message: Message):
+    conversation: str = ""
+    user_input = message.message
+    prompt = conversation + f"사용자: {user_input}\nGPT:"
+    gpt_response = ask_gpt(prompt)
+    add_to_conversation(user_input, gpt_response)
+    return {"response": gpt_response}
 
 
 # 세션에서 현재 사용자를 가져오는 함수 정의
