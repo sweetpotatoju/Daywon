@@ -6,7 +6,7 @@ import os
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import re
-
+from app.core.problem.chatbot import router as chat_router
 from starlette.responses import RedirectResponse
 
 from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files
@@ -65,20 +65,11 @@ def get_db():
         db.close()
 
 
-
-
 class Message(BaseModel):
     message: str
 
 
-@app.post("/chatbot")
-async def chat(message: Message):
-    conversation: str = ""
-    user_input = message.message
-    prompt = conversation + f"사용자: {user_input}\nGPT:"
-    gpt_response = ask_gpt(prompt)
-    add_to_conversation(user_input, gpt_response)
-    return {"response": gpt_response}
+app.include_router(chat_router, prefix="/api")
 
 
 # 세션에서 현재 사용자를 가져오는 함수 정의
@@ -334,7 +325,6 @@ def read_script(scripts_id: int, db: Session = Depends(get_db)):
 
 @app.post("/create_content/")
 async def create_content(request: CreateContentRequest, db: Session = Depends(get_db)):
-    global new_file_name
     try:
         print(request.label)
         categories_name = crud.get_random_category_content_by_label(db, request.label)
@@ -368,6 +358,36 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
         }
         crud.create_case_script(db, case_script_data=case_script_data)
 
+        combined_conceptual_script = " ".join(parts)
+        print(combined_conceptual_script)
+        combined_case_script = " ".join(case_script_split)
+        print(combined_case_script)
+
+        problem_parts = await create_problem(combined_conceptual_script, combined_case_script, level)
+        print(problem_parts)
+        problem_data = {
+            "scripts_id": script_id,
+            "plus_point": problem_parts["plus_point"],
+            "minus_point": problem_parts["minus_point"],
+            "question": problem_parts["question"],
+            "option_1": problem_parts["options"][1],
+            "option_2": problem_parts["options"][2],
+            "option_3": problem_parts["options"][3],
+            "option_4": problem_parts["options"][4],
+            "answer_option": problem_parts["answer_option"],  # 정답 번호
+        }
+        problem_content = crud.create_question(db, question_data=problem_data)
+
+        comment_data = {
+            'q_id': problem_content.q_id,
+            'comment_1': problem_parts['explanation_1'],
+            'comment_2': problem_parts['explanation_2'],
+            'comment_3': problem_parts['explanation_3'],
+            'comment_4': problem_parts['explanation_4']
+        }
+
+        crud.create_comment(db, comment_data=comment_data)
+
         last_file = crud.get_latest_shortform(db)
         new_filename = None
         if last_file:
@@ -397,41 +417,13 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
         print(new_filename)
         video_creator = VideoCreator(clips_info, ftp_directory, new_filename)
         shortform_name = video_creator.get_video_file_path()
-        print(f"어이어이{shortform_name}")
+        print(f"{shortform_name}")
         await video_creator.create_video()
         shortform = {
             "scripts_id": script_id,
             "form_url": shortform_name
         }
         crud.create_shortform(db, shortform_data=shortform)
-
-        combined_conceptual_script = " ".join(parts)
-        combined_case_script = " ".join(case_script_split)
-
-        problem_parts = await create_problem(combined_conceptual_script, combined_case_script, level)
-        print(problem_parts)
-        problem_data = {
-            "scripts_id": script_id,
-            "plus_point": problem_parts["plus_point"],
-            "minus_point": problem_parts["minus_point"],
-            "question": problem_parts["question"],
-            "option_1": problem_parts["options"][1],
-            "option_2": problem_parts["options"][2],
-            "option_3": problem_parts["options"][3],
-            "option_4": problem_parts["options"][4],
-            "answer_option": problem_parts["answer_option"],  # 정답 번호
-        }
-        problem_content = crud.create_question(db, question_data=problem_data)
-
-        comment_data = {
-            'q_id': problem_content.q_id,
-            'comment_1': problem_parts['explanation_1'],
-            'comment_2': problem_parts['explanation_2'],
-            'comment_3': problem_parts['explanation_3'],
-            'comment_4': problem_parts['explanation_4']
-        }
-
-        crud.create_comment(db, comment_data=comment_data)
 
         return {"message": "Content created successfully"}
 

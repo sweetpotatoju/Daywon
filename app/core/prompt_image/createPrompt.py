@@ -3,7 +3,7 @@ import random
 from app.core.api import util_api, get_api_key, call_api
 
 api_key = get_api_key()
-model = 'gpt-4'
+model = 'gpt-4o'
 
 
 async def create_prompt(category,level):

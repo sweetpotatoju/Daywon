@@ -4,7 +4,7 @@ from app.core.api import util_api, get_api_key, call_api  # 앞서 정의한 함
 import random
 
 api_key = get_api_key()
-model = 'gpt-4'
+model = 'gpt-4o'
 
 
 def split_explanation_into_four_parts(explanation_text):
@@ -42,15 +42,15 @@ def parse_problem(origin_problem, level=None, plus_point=None, minus_point=None)
     for line in lines:
         line = line.strip()  # 각 라인의 앞뒤 공백 제거
         print(f"Processing line: '{line}'")  # 디버깅을 위한 출력
-        if line.startswith('문제 :'):
+        if line.startswith('문제:'):
             current_key = "question"
-            problem_parts[current_key] = line[len("문제 :"):].strip()
+            problem_parts[current_key] = line[len("문제:"):].strip()
             print(f"Question identified: {problem_parts[current_key]}")  # 디버깅을 위한 출력
-        elif line.startswith("보기 :"):
+        elif line.startswith("보기:"):
             current_key = "options"
-        elif line.startswith("정답 :"):
+        elif line.startswith("정답:"):
             current_key = "answer_option"
-            answer_text = line[len("정답 :"):].strip()
+            answer_text = line[len("정답:"):].strip()
             if answer_text.endswith("번"):
                 answer_text = answer_text[:-1].strip()  # "번"을 제거하고 공백 제거
             try:
@@ -59,9 +59,9 @@ def parse_problem(origin_problem, level=None, plus_point=None, minus_point=None)
                 print(f"Answer identified: {problem_parts[current_key]}")  # 디버깅을 위한 출력
             except (ValueError, AttributeError):
                 raise ValueError(f"Invalid answer option format: {answer_text}")
-        elif line.startswith("해설 :"):
+        elif line.startswith("해설:"):
             current_key = "explanation"
-            explanation_text = line[len("해설 :"):].strip()
+            explanation_text = line[len("해설:"):].strip()
             explanations = split_explanation_into_four_parts(explanation_text)
             for i, explanation in enumerate(explanations):
                 if i < 4:  # 최대 4개로 제한
@@ -85,7 +85,8 @@ async def create_problem(script, example_script, level):
     2 - 문제의 정답에 대한 설명과 오답에 대한 설명을 해설로 작성해주세요.
     3 - 문제를 생성할 때에는 한글만 사용해주세요.
     4 - 앞 뒤 문맥을 고려해서 문장들을 작성해주세요.
-    5 - 명확한 정답 보기 1개와 확실한 오답이유가 있는 오답 보기 3개로 만들어주세요.
+    5 - 명확한 정답 보기 1개와 확실한 오답 이유가 있는 오답 보기 3개로 만들어주세요.
+    6 - 엔터 한번만 쳐
 
     다음 형식을 사용하십시오.
     문제 :
@@ -127,6 +128,7 @@ async def create_problem(script, example_script, level):
     origin_problem = await call_api(api_url, headers, data)
     print(origin_problem)
     problem_parts = parse_problem(origin_problem, level, plus_point, minus_point)
+    print(problem_parts)
 
     return problem_parts
 

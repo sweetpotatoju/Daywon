@@ -93,6 +93,7 @@ class VideoCreator:
     async def create_video(self):
         clips = []
         used_files = []  # 사용된 파일 경로를 저장할 리스트
+
         for path, text in self.clips_info:
             # 긴 텍스트를 적절한 길이로 줄바꿈
             wrapped_text = textwrap.fill(text, width=self.wrap_width)
@@ -119,7 +120,9 @@ class VideoCreator:
 
             # 사용된 파일 경로 추가
             used_files.append(path)  # 이미지 파일 경로 추가
+            print(f"Used image file: {path}")
             used_files.append(audio_path)  # 오디오 파일 경로 추가
+            print(f"Used audio file: {audio_path}")
 
             # 클립 닫기
             audio_clip.close()
@@ -130,7 +133,7 @@ class VideoCreator:
         # 모든 클립 연결
         final_clip = concatenate_videoclips(clips, method="compose")
 
-        # 최종 비디오 파일 생성
+        # 최종 비디오 파일 생성 및 로컬에 저장
         final_clip.write_videofile(self.video_path, fps=30, codec='libx264', audio_codec='aac')
 
         # 최종 클립 닫기
@@ -140,8 +143,15 @@ class VideoCreator:
         # 비디오 파일을 FTP 서버에 업로드
         upload_file_to_ftp(self.video_path, remote_directory)
 
+        print(f"Final video saved locally at {self.video_path}")
+
         # 사용된 파일 삭제
         for file_path in used_files:
             if os.path.exists(file_path):
                 os.remove(file_path)
                 print(f"Deleted {file_path}")
+
+        # 최종 비디오 파일 삭제
+        if os.path.exists(self.video_path):
+            os.remove(self.video_path)
+            print(f"Deleted final video file: {self.video_path}")
