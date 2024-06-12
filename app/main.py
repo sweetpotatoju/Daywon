@@ -665,6 +665,23 @@ def get_video_stream(file_contents):
     yield from file_contents
 
 
+@app.post("/admins/login_mobile")
+async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
+                      db: Session = Depends(get_db)):
+    admin = crud.get_active_admin_by_admin_name(db, admin_name)
+    if not admin or admin.password != password:
+        return {"status": "fail"}
+
+    session = request.session
+    session["user"] = {
+        "admin_id": admin.admin_id,
+        "admin_name": admin.admin_name,
+        "qualification_level": admin.qualification_level
+    }
+    return {"status": "success"}  # 성공 시 명확한 메시지 반환
+
+
+
 @app.get("/nextpage/{content_id}", response_class=HTMLResponse)
 async def content_view(request: Request, content_id: int, db: Session = Depends(get_db)):
     script_data = crud.get_script(db, content_id)
