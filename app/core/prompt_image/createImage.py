@@ -21,7 +21,6 @@ async def generate_images(prompt, clips_info):
         )
         # 생성된 이미지 url 열기
         url = response.data[0].url
-        webbrowser.open(url)
 
         # 생성된 이미지 저장
         img_dest = create_image_file_name()

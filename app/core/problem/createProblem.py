@@ -1,8 +1,24 @@
+import re
+
 from app.core.api import util_api, get_api_key, call_api  # 앞서 정의한 함수를 임포트
 import random
 
 api_key = get_api_key()
-model = 'gpt-4'
+model = 'gpt-4o'
+
+
+def split_explanation_into_four_parts(explanation_text):
+    length = len(explanation_text)
+    part_length = length // 4
+    explanations = []
+
+    for i in range(3):  # 첫 3개의 파트를 추가
+        start_index = i * part_length
+        end_index = (i + 1) * part_length
+        explanations.append(explanation_text[start_index:end_index].strip())
+
+    explanations.append(explanation_text[3 * part_length:].strip())  # 마지막 파트를 추가
+    return explanations
 
 
 def parse_problem(origin_problem, level=None, plus_point=None, minus_point=None):
@@ -25,41 +41,39 @@ def parse_problem(origin_problem, level=None, plus_point=None, minus_point=None)
 
     for line in lines:
         line = line.strip()  # 각 라인의 앞뒤 공백 제거
-        if line.startswith("문제:"):
+        print(f"Processing line: '{line}'")  # 디버깅을 위한 출력
+        if line.startswith('문제:'):
             current_key = "question"
             problem_parts[current_key] = line[len("문제:"):].strip()
+            print(f"Question identified: {problem_parts[current_key]}")  # 디버깅을 위한 출력
         elif line.startswith("보기:"):
             current_key = "options"
         elif line.startswith("정답:"):
             current_key = "answer_option"
             answer_text = line[len("정답:"):].strip()
             if answer_text.endswith("번"):
-                answer_text = answer_text[:-1]  # "번"을 제거
-            # 숫자만 추출하여 정수로 변환(정답에 번호만 나오지 않는 문제 발생)
+                answer_text = answer_text[:-1].strip()  # "번"을 제거하고 공백 제거
             try:
-                answer_number = int(answer_text.split()[0])
+                answer_number = int(re.search(r'\d+', answer_text).group())
                 problem_parts[current_key] = answer_number
-            except ValueError:
+                print(f"Answer identified: {problem_parts[current_key]}")  # 디버깅을 위한 출력
+            except (ValueError, AttributeError):
                 raise ValueError(f"Invalid answer option format: {answer_text}")
         elif line.startswith("해설:"):
             current_key = "explanation"
             explanation_text = line[len("해설:"):].strip()
-            explanations = split_explanation_by_length(explanation_text)
+            explanations = split_explanation_into_four_parts(explanation_text)
             for i, explanation in enumerate(explanations):
-                problem_parts[f"explanation_{i + 1}"] = explanation.strip()
+                if i < 4:  # 최대 4개로 제한
+                    problem_parts[f"explanation_{i + 1}"] = explanation.strip()
+                    print(f"Explanation part {i + 1} identified: {explanation.strip()}")  # 디버깅을 위한 출력
         elif current_key == "options":
-            if line.startswith("1."):
-                problem_parts[current_key][1] = line[2:].strip()
-                print(problem_parts[current_key][1])
-            elif line.startswith("2."):
-                problem_parts[current_key][2] = line[2:].strip()
-                print(problem_parts[current_key][2])
-            elif line.startswith("3."):
-                problem_parts[current_key][3] = line[2:].strip()
-                print(problem_parts[current_key][3])
-            elif line.startswith("4."):
-                problem_parts[current_key][4] = line[2:].strip()
-                print(problem_parts[current_key][4])
+            match = re.match(r"(\d+)\.\s*(.*)", line)
+            if match:
+                option_number = int(match.group(1))
+                option_text = match.group(2).strip()
+                problem_parts[current_key][option_number] = option_text
+                print(f"Option {option_number} identified: {option_text}")  # 디버깅을 위한 출력
 
     return problem_parts
 
@@ -71,7 +85,8 @@ async def create_problem(script, example_script, level):
     2 - 문제의 정답에 대한 설명과 오답에 대한 설명을 해설로 작성해주세요.
     3 - 문제를 생성할 때에는 한글만 사용해주세요.
     4 - 앞 뒤 문맥을 고려해서 문장들을 작성해주세요.
-    5 - 명확한 정답 보기 1개와 확실한 오답이유가 있는 오답 보기 3개로 만들어주세요.
+    5 - 명확한 정답 보기 1개와 확실한 오답 이유가 있는 오답 보기 3개로 만들어주세요.
+    6 - 엔터 한번만 쳐
 
     다음 형식을 사용하십시오.
     문제 :
@@ -111,8 +126,9 @@ async def create_problem(script, example_script, level):
     plus_point, minus_point = generate_random_points(level)
     api_url, headers, data = util_api(api_key, model, system_prompt, user_prompt)
     origin_problem = await call_api(api_url, headers, data)
-
+    print(origin_problem)
     problem_parts = parse_problem(origin_problem, level, plus_point, minus_point)
+    print(problem_parts)
 
     return problem_parts
 
@@ -186,23 +202,6 @@ def combine_problem_parts(problem_parts, comment):
         "explanation": comment
     }
     return combined_dict
-
-
-def split_explanation_by_length(explanation, num_parts=4):
-    explanation = explanation.strip()
-    part_length = len(explanation) // num_parts
-    parts = [explanation[i:i + part_length] for i in range(0, len(explanation), part_length)]
-
-    # 마지막 부분이 넘치는 경우 처리
-    if len(parts) > num_parts:
-        for i in range(len(parts) - num_parts):
-            parts[-2] += parts.pop(-1)
-
-    # 빈 부분을 채워 넣음
-    while len(parts) < num_parts:
-        parts.append("")
-
-    return parts
 
 
 def merge_explanations(comment):

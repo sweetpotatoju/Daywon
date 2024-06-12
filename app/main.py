@@ -2,9 +2,11 @@ import io
 
 from fastapi import HTTPException, Form, Depends
 import os
+
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import re
-
+from app.core.problem.chatbot import router as chat_router
 from starlette.responses import RedirectResponse
 
 from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files
@@ -36,6 +38,7 @@ from fastapi.responses import StreamingResponse
 from fastapi import FastAPI, Response
 from fastapi.responses import StreamingResponse
 from ftplib import FTP, error_perm, error_temp, all_errors
+from app.core.problem.chatbot import *
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -45,7 +48,6 @@ app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_dir)
-# Static 파일 경로 설정
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
@@ -60,6 +62,13 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+class Message(BaseModel):
+    message: str
+
+
+app.include_router(chat_router, prefix="/api")
 
 
 # 세션에서 현재 사용자를 가져오는 함수 정의
@@ -295,6 +304,8 @@ def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
 
     print(f"Result: {result}")
     return result
+
+
 @app.get("/scripts_read/{scripts_id}")
 def read_script(scripts_id: int, db: Session = Depends(get_db)):
     db_script = crud.get_script(db, scripts_id=scripts_id)
@@ -346,39 +357,13 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
         }
         crud.create_case_script(db, case_script_data=case_script_data)
 
-        last_file = crud.get_latest_shortform(db)
-
-        if last_file:
-            last_file_name = last_file.form_url
-            match = re.search(r'(\d+)', last_file_name)
-
-            if not match:
-                raise ValueError("Filename does not contain a number.")
-
-            # 추출된 숫자를 +1 합니다.
-            number = int(match.group(1))
-            incremented_number = number + 1
-
-            # 새로운 숫자를 포함하여 파일 이름을 생성합니다.
-            new_filename = re.sub(r'\d+', str(incremented_number), last_file_name)
-        else:
-            new_filename = None
-
-        clips_info = []
-        await generate_images(case_script_split, clips_info)
-        video_creator = VideoCreator(clips_info, ftp_directory, new_filename)
-        shortform_name = video_creator.get_video_file_path()
-        await video_creator.create_video()
-        shortform = {
-            "scripts_id": script_id,
-            "form_url": shortform_name
-        }
-        crud.create_shortform(db, shortform_data=shortform)
-
         combined_conceptual_script = " ".join(parts)
+        print(combined_conceptual_script)
         combined_case_script = " ".join(case_script_split)
+        print(combined_case_script)
 
         problem_parts = await create_problem(combined_conceptual_script, combined_case_script, level)
+        print(problem_parts)
         problem_data = {
             "scripts_id": script_id,
             "plus_point": problem_parts["plus_point"],
@@ -401,6 +386,43 @@ async def create_content(request: CreateContentRequest, db: Session = Depends(ge
         }
 
         crud.create_comment(db, comment_data=comment_data)
+
+        last_file = crud.get_latest_shortform(db)
+        new_filename = None
+        if last_file:
+            print("a")
+            last_file_name = last_file.form_url
+            print("a")
+            print(last_file_name)
+
+            # 정규식을 사용하여 숫자를 추출합니다.
+            match = re.search(r'(\d+)(?=\.\w+$)', last_file_name)
+
+            if not match:
+                raise ValueError("Filename does not contain a number.")
+
+            # 추출된 숫자를 +1 합니다.
+            number = int(match.group(1))
+            incremented_number = number + 1
+
+            # 새로운 파일 이름을 생성합니다.
+            new_filename = re.sub(r'(\d+)(?=\.\w+$)', str(incremented_number), last_file_name)
+            print(new_filename)  # "completed_video_8.mp4"
+        else:
+            new_filename = None
+
+        clips_info = []
+        await generate_images(case_script_split, clips_info)
+        print(new_filename)
+        video_creator = VideoCreator(clips_info, ftp_directory, new_filename)
+        shortform_name = video_creator.get_video_file_path()
+        print(f"{shortform_name}")
+        await video_creator.create_video()
+        shortform = {
+            "scripts_id": script_id,
+            "form_url": shortform_name
+        }
+        crud.create_shortform(db, shortform_data=shortform)
 
         return {"message": "Content created successfully"}
 
@@ -663,6 +685,7 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
         "video_url": video_url  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
     })
 
+
 @app.get("/stream_video/{video_path}")
 async def stream_video(request: Request, video_path: str):
     remote_file_path = f"/video/{video_path}"
@@ -674,6 +697,7 @@ async def stream_video(request: Request, video_path: str):
             raise HTTPException(status_code=500, detail="Failed to retrieve video")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+
 
 @app.get("/get_videos/", response_model=List[str])
 async def get_videos():
