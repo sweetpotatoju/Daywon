@@ -194,7 +194,7 @@
             }
         }
 
-        async function sendMessage() {
+        async function sendMessage(chatbotType) {
             // 입력 필드 요소를 가져옵니다.
             const userInputField = document.getElementById('user-input');
             if (!userInputField) {
@@ -222,9 +222,21 @@
             userMessage.textContent = `사용자: ${userInput}`;
             chatBody.appendChild(userMessage);
 
+            var chatbotUrl = "";
+
+            if (chatbotType) {
+                if (chatbotType === "chatbot1") chatbotUrl = `/modify_concept_scripts/${scriptsId}`;
+                else if (chatbotType === "chatbot2") chatbotUrl = `/modify_case_scripts/${scriptsId}`;
+                else if (chatbotType === "chatbot3") chatbotUrl = `/modify_problem/${scriptsId}`;
+            }
+            else {
+                console.error("chatbotType이 지정되지 않았습니다.");
+            }
+
+
             // 서버에 메시지 전송
             try {
-                const response = await fetch(`/modify_concept_scripts/${scriptsId}`, {
+                const response = await fetch(chatbotUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -361,7 +373,7 @@
                 </div>
                 <div class="chat-input">
                     <input type="text" id="user-input" placeholder="메시지를 입력하세요...">
-                    <button onclick="sendMessage()">전송</button>
+                    <button onclick="sendMessage('chatbot1')">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
             </div>
@@ -372,7 +384,7 @@
                 </div>
                 <div class="chat-input">
                     <input type="text" placeholder="메시지를 입력하세요...">
-                    <button>전송</button>
+                    <button onclick="sendMessage('chatbot2')">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
             </div>
@@ -383,7 +395,7 @@
                 </div>
                 <div class="chat-input">
                     <input type="text" placeholder="메시지를 입력하세요...">
-                    <button>전송</button>
+                    <button onclick="sendMessage('chatbot3')">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
             </div>
