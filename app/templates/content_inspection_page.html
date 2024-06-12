@@ -237,19 +237,8 @@
 
         async function sendMessage(chatbotType) {
             // 입력 필드 요소를 가져옵니다.
-            const userInputField = document.getElementById('user-input');
-            if (!userInputField) {
-                console.error("입력 필드를 찾을 수 없습니다.");
-                return;
-            }
-
-            // 입력 필드의 값을 가져옵니다.
-            const userInput = userInputField.value;
-            const statusMessage = document.getElementById('status-message');
-            const chatBody = document.getElementById('chat-body');
-
             // script_id 값을 가져옵니다.
-            const chatbotElement = document.getElementById('chatbot1');
+            const chatbotElement = document.getElementById('chatbot');
             const scriptsId = chatbotElement.getAttribute('data-scripts-id');
 
             // scriptsId가 undefined인지 확인합니다.
@@ -257,22 +246,56 @@
                 console.error("scriptsId를 찾을 수 없습니다.");
                 return;
             }
+            var chatbotUrl = "";
+            var userInputField = "";
+            var statusMessage = "";
+            var chatBody = document.getElementById('chat-body');
+
+            if (chatbotType) {
+                if (chatbotType === "chatbot1") {
+                    chatbotUrl = `/modify_concept_scripts/${scriptsId}`;
+                    userInputField = document.getElementById('user-input1');
+                    statusMessage = document.getElementById('status-message1');
+                    chatBody = document.getElementById('chat-body1');
+                    console.log('chatbot1:', chatbotType);
+                }
+                else if (chatbotType === "chatbot2") {
+                    chatbotUrl = `/modify_case_scripts/${scriptsId}`;
+                    userInputField = document.getElementById('user-input2');
+                    statusMessage = document.getElementById('status-message2');
+                    chatBody = document.getElementById('chat-body2');
+                    console.log('chatbot2:', chatbotType);
+                }
+                else if (chatbotType === "chatbot3") {
+                    chatbotUrl = `/modify_problem/${scriptsId}`;
+                    userInputField = document.getElementById('user-input3');
+                    statusMessage = document.getElementById('status-message3');
+                    chatBody = document.getElementById('chat-body3');
+                    console.log('chatbot3:', chatbotType);
+                }
+            }
+            else {
+                console.error("chatbotType이 지정되지 않았습니다.");
+            }
+
+
+            if (!userInputField) {
+                console.error("입력 필드를 찾을 수 없습니다.");
+                return;
+            }
+
+            // 입력 필드의 값을 가져옵니다.
+            const userInput = userInputField.value;
+
+
 
             // 사용자가 입력한 메시지를 보여줍니다.
             const userMessage = document.createElement('p');
             userMessage.textContent = `사용자: ${userInput}`;
             chatBody.appendChild(userMessage);
 
-            var chatbotUrl = "";
 
-            if (chatbotType) {
-                if (chatbotType === "chatbot1") chatbotUrl = `/modify_concept_scripts/${scriptsId}`;
-                else if (chatbotType === "chatbot2") chatbotUrl = `/modify_case_scripts/${scriptsId}`;
-                else if (chatbotType === "chatbot3") chatbotUrl = `/modify_problem/${scriptsId}`;
-            }
-            else {
-                console.error("chatbotType이 지정되지 않았습니다.");
-            }
+
 
 
             // 서버에 메시지 전송
@@ -299,13 +322,16 @@
 
                 // 서버로부터의 응답을 보여줍니다.
                 const botMessage = document.createElement('p');
-                botMessage.textContent = `챗봇: ${data.response}`;
+
                 chatBody.appendChild(botMessage);
-                statusMessage.textContent = "수정 완료";
+                botMessage.textContent = `챗봇: 수정 완료! 다른 수정을 원하면, 계속 수정 요청을 보내주세요.`;
+                console.log("수정 완료");
+
 
             } catch (error) {
                 console.error('Error:', error);
-                statusMessage.textContent = "수정 실패";
+                botMessage.textContent = `챗봇: 오류로 인하여 수정에 실패하였습니다.`;
+
             }
 
             // 입력 필드를 초기화합니다.
@@ -404,38 +430,43 @@
                 {% endif %}
             </div>
         </div>
-        <div class="chatbot">
-            <div id="chatbot1" data-scripts-id="{{ script_data.scripts_id }}">
+        <div class="chatbot" id="chatbot" data-scripts-id="{{ script_data.scripts_id }}">
+            <div id="chatbot1" >
                 <div class="chat-header">수정사항을 입력해주세요</div>
-                <div class="chat-body" id="chat-body">
-                    <p>1번 보기를 문제와 관련된 적절한 답안으로 수정해주세요.</p>
-                    <p id="status-message">수정ing...</p>
-                    <p>3초 후 자동으로 콘텐츠 화면으로 넘어갑니다.</p>
+                <div class="chat-body" id="chat-body1">
+                    <p>개념 스크립트에 대한 수정 사항을 입력해주세요.</p>
+                    <p>수정에 시간이 걸립니다.</p>
+                    <p id="status-message1"> </p>
+
                 </div>
-                <div class="chat-input">
-                    <input type="text" id="user-input" placeholder="메시지를 입력하세요...">
+                <div class="chat-input" >
+                    <input type="text" id="user-input1" placeholder="메시지를 입력하세요...">
                     <button onclick="sendMessage('chatbot1')">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
             </div>
-            <div id="chatbot2">
+            <div id="chatbot2" >
                 <div class="chat-header">수정사항을 입력해주세요</div>
-                <div class="chat-body">
-                    <p>숏폼 및 예시 스크립트와 관련된 챗봇 대화 내용이 여기에 표시됩니다.</p>
+                <div class="chat-body" id="chat-body2">
+                    <p>예시 스크립트에 대한 수정 사항을 입력해주세요.</p>
+                    <p>수정에 시간이 걸립니다.</p>
+                    <p id="status-message2"> </p>
                 </div>
                 <div class="chat-input">
-                    <input type="text" placeholder="메시지를 입력하세요...">
+                    <input type="text" id="user-input2" placeholder="메시지를 입력하세요...">
                     <button onclick="sendMessage('chatbot2')">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
             </div>
             <div id="chatbot3">
                 <div class="chat-header">수정사항을 입력해주세요</div>
-                <div class="chat-body">
-                    <p>학습 문제 및 해설과 관련된 챗봇 대화 내용이 여기에 표시됩니다.</p>
+                <div class="chat-body" id="chat-body3">
+                    <p>문제에 대한 수정 사항을 입력해주세요.</p>
+                    <p>수정에 시간이 걸립니다.</p>
+                    <p id="status-message3"> </p>
                 </div>
                 <div class="chat-input">
-                    <input type="text" placeholder="메시지를 입력하세요...">
+                    <input type="text" id="user-input3" placeholder="메시지를 입력하세요...">
                     <button onclick="sendMessage('chatbot3')">전송</button>
                 </div>
                 <button class="finalize-button" onclick="finalizeChanges()">최종 수정 결정</button>
