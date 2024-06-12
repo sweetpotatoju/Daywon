@@ -611,9 +611,9 @@ async def modify_problem(scripts_id: int, request: ModifyScriptRequest, db: Sess
 
 @app.post("/update_inspection_status/{scripts_id}")
 async def update_inspection_status_true(scripts_id: int, db: Session = Depends(get_db)):
-    response = crud.update_inspection_status(db, scripts_id)
-
-    return {"scripts_id": scripts_id, "inspection_status": response}
+    inspection_status = crud.update_inspection_status(db, scripts_id)
+    print(inspection_status)
+    return {"scripts_id": scripts_id, "inspection_status": inspection_status}
 
 
 # admin

@@ -519,4 +519,9 @@ def get_user_count(db: Session):
 def update_inspection_status(db: Session, scripts_id: int):
     script = db.query(Scripts).filter(Scripts.scripts_id == scripts_id).first()
     script.inspection_status = True
+
+    if script:
+        script.inspection_status = True
+        db.commit()
+
     return script.inspection_status
