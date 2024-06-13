@@ -4,6 +4,7 @@ from fastapi import HTTPException, Form, Depends
 import os
 
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 import re
 
@@ -16,7 +17,8 @@ from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
-    update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name
+    update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name, \
+    get_user_by_email_and_name, get_user_by_nickname_and_name
 from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
     AdminUpdate, AdminLogin, CreateContentRequest, ScriptsRead
@@ -762,7 +764,17 @@ def read_random_script(category_label: int, db: Session = Depends(get_db)):
     script = crud.get_random_script_by_category_label(db, category_label)
     if script is None:
         raise HTTPException(status_code=404, detail="Script not found")
-    return script
+
+    combined_content = f"{script.content_1} {script.content_2} {script.content_3}".strip()
+
+    return {
+        "scripts_id": script.scripts_id,
+        "level": script.level,
+        "category_id": script.category_id,
+        "inspection_status": script.inspection_status,
+        "combined_content": combined_content
+    }
+
 @app.get("/scripts/{scripts_id}/shortforms")
 def read_shortforms(scripts_id: int, db: Session = Depends(get_db)):
     shortform_url = crud.get_shortforms_by_scripts_id(db, scripts_id)
