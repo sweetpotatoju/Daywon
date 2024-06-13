@@ -1,11 +1,11 @@
 import random
-from typing import Any
+from typing import Any, List
 
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 from app.core.db import models, schemas
 from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking, CaseScripts, Comment, Category, \
-    User
+    User, Profile_images
 from passlib.hash import bcrypt
 
 from app.core.db.schemas import CategoryCreate, CategoryUpdate
@@ -451,12 +451,29 @@ def get_user_password(db: Session, admin_id: int):
     return None
 
 
+def get_profile_image_url(user_id: int, db: Session) -> str:
+    result = db.query(Profile_images.image_url). \
+        join(User, User.profile_image == Profile_images.image_id). \
+        filter(User.user_id == user_id).first()
+    return result.image_url if result else None
+
+
 def create_user_history(db: Session, user_id: int, script_id: int, T_F: bool):
     user_history = History(user_id=user_id, script_id=script_id, T_F=T_F)
     db.add(user_history)
     db.commit()
     db.refresh(user_history)
     return user_history
+
+
+def get_random_quizzes(db: Session, limit: int = 10):
+    quizzes = db.query(models.Enrollment_quiz).all()
+    return random.sample(quizzes, limit)
+
+
+def get_correct_answers(db: Session, quiz_ids: List[int]):
+    quizzes = db.query(models.Enrollment_quiz).filter(models.Enrollment_quiz.enrollment_quiz_id.in_(quiz_ids)).all()
+    return {quiz.enrollment_quiz_id: quiz.correct for quiz in quizzes}
 
 
 def update_user_history(db: Session, user_id: int, script_id: int):
@@ -589,6 +606,7 @@ def get_shortforms_by_scripts_id(db: Session, scripts_id: int):
 
 def get_questions_by_scripts_id(db: Session, scripts_id: int):
     return db.query(Question).filter(Question.scripts_id == scripts_id).all()
+
 
 def get_comments_by_q_id(db: Session, q_id: int):
     return db.query(Comment).filter(Comment.q_id == q_id).all()

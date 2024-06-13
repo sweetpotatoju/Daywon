@@ -18,7 +18,7 @@ from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
     update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name, \
-    get_user_by_email_and_name, get_user_by_nickname_and_name
+    get_user_by_email_and_name, get_user_by_nickname_and_name, get_profile_image_url
 from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
     AdminUpdate, AdminLogin, CreateContentRequest, ScriptsRead
@@ -193,7 +193,7 @@ async def check_email(email: str, db: Session = Depends(get_db)):
 
 
 @app.post("/user_find-password")
-def find_password(email: str, name: str, db: Session = Depends(get_db)):
+async def find_password(email: str, name: str, db: Session = Depends(get_db)):
     user = get_user_by_email_and_name(db, email, name)
     if user:
         return {"password": user.hashed_password}
@@ -201,7 +201,7 @@ def find_password(email: str, name: str, db: Session = Depends(get_db)):
 
 
 @app.post("/user_find-email")
-def find_email(nickname: str, name: str, db: Session = Depends(get_db)):
+async def find_email(nickname: str, name: str, db: Session = Depends(get_db)):
     user = get_user_by_nickname_and_name(db, nickname, name)
     if user:
         return {"email": user.e_mail}
@@ -287,6 +287,14 @@ async def create_user_history(user_id: int, script_id: int, T_F: bool, db: Sessi
 async def update_user_history(user_id: int, scripts_id: int, T_F: bool, db: Session = Depends(get_db)):
     crud.update_user_history(db, user_id=user_id, script_id=scripts_id, T_F=T_F)
     return {"success"}
+
+
+@app.get("/users/{user_id}/profile-image")
+def get_profile_image(user_id: int, db: Session = Depends(get_db)):
+    profile_image_url = get_profile_image_url(user_id, db)
+    if profile_image_url is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"profile_image_url": profile_image_url}
 
 
 @app.get("/get_user_history/{user_id}")
@@ -805,7 +813,7 @@ async def get_stream_video(request: Request, scripts_id: int, db: Session = Depe
 
 
 @app.get("/read/scripts/random/")
-def read_random_script(category_label: int, level: int, db: Session = Depends(get_db)):
+async def read_random_script(category_label: int, level: int, db: Session = Depends(get_db)):
     script = crud.get_random_script_by_category_label_and_level(db, category_label, level)
     if script is None:
         raise HTTPException(status_code=404, detail="Script not found")
@@ -824,26 +832,43 @@ def read_random_script(category_label: int, level: int, db: Session = Depends(ge
         headers={"Content-Type": "application/json; charset=utf-8"}
     )
 
+
 @app.get("/scripts/{scripts_id}/shortforms")
-def read_shortforms(scripts_id: int, db: Session = Depends(get_db)):
+async def read_shortforms(scripts_id: int, db: Session = Depends(get_db)):
     shortform_url = crud.get_shortforms_by_scripts_id(db, scripts_id)
     if not shortform_url:
         raise HTTPException(status_code=404, detail="Shortforms not found")
     return shortform_url
 
+
 @app.get("/scripts/{scripts_id}/questions")
-def read_questions(scripts_id: int, db: Session = Depends(get_db)):
+async def read_questions(scripts_id: int, db: Session = Depends(get_db)):
     questions = crud.get_questions_by_scripts_id(db, scripts_id)
     if not questions:
         raise HTTPException(status_code=404, detail="Questions not found")
     return questions
 
+
 @app.get("/questions/{q_id}/comments")
-def read_comments(q_id: int, db: Session = Depends(get_db)):
+async def read_comments(q_id: int, db: Session = Depends(get_db)):
     comments = crud.get_comments_by_q_id(db, q_id)
     if not comments:
         raise HTTPException(status_code=404, detail="Comments not found")
-    return comments
+
+    combined_comment = " ".join(
+        f"{comment.comment_1} {comment.comment_2} {comment.comment_3} {comment.comment_4}".strip()
+        for comment in comments
+    )
+
+    return JSONResponse(
+        content={
+            "combined_comment": combined_comment
+        },
+        media_type="application/json",
+        headers={"Content-Type": "application/json; charset=utf-8"}
+    )
+
+
 
 @app.get("/stream_video/{video_path}")
 async def stream_video(request: Request, video_path: str):
@@ -899,6 +924,31 @@ async def get_count_data(db: Session = Depends(get_db)):
         "true_questions_count": true_questions_count,
         "get_user_count": user_count
     }
+
+
+@app.get("/enroll_quizzes/", response_model=List[schemas.Quiz])
+async def read_quizzes(db: Session = Depends(get_db)):
+    quizzes = crud.get_random_quizzes(db)
+    if not quizzes:
+        raise HTTPException(status_code=404, detail="Quizzes not found")
+    return quizzes
+
+
+@app.post("/submit-answers/")
+async def submit_answers(user_answers: schemas.UserAnswers, db: Session = Depends(get_db)):
+    correct_answers = crud.get_correct_answers(db, [answer.enrollment_quiz_id for answer in user_answers.answers])
+    score = sum(1 for answer in user_answers.answers if correct_answers[answer.enrollment_quiz_id] == answer.answer)
+
+    if score <= 2:
+        return 1
+    elif score <= 4:
+        return 2
+    elif score <= 6:
+        return 3
+    elif score <= 8:
+        return 4
+    else:
+        return 5
 
 
 if __name__ == "__main__":

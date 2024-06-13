@@ -26,6 +26,17 @@ class Profile_images(Base):
     image_url = Column(String)
 
 
+class Enrollment_quiz(Base):
+    __tablename__ = "enrollment_quiz"
+    enrollment_quiz_id = Column(Integer, primary_key=True, index=True)
+    question = Column(String)
+    option_1 = Column(String)
+    option_2 = Column(String)
+    option_3 = Column(String)
+    option_4 = Column(String)
+    correct = Column(Integer)
+
+
 # users의 point를 내림차순으로 만들고 ranking을 매김
 class Ranking(Base):
     __tablename__ = "ranking"
@@ -118,7 +129,7 @@ class Comment(Base):
 class Admin(Base):
     __tablename__ = "admin"
     admin_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    admin_name = Column(String,unique=True)
+    admin_name = Column(String, unique=True)
     password = Column(String)
     qualification_level = Column(Integer)
     account_status = Column(Boolean, default=True)
