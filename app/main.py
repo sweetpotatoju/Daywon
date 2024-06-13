@@ -11,7 +11,7 @@ import re
 from starlette.middleware.cors import CORSMiddleware
 
 from app.core.problem.chatbot import router as chat_router
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, JSONResponse
 
 from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files
 from app.core.db import models, schemas, crud
@@ -812,13 +812,17 @@ def read_random_script(category_label: int, level: int, db: Session = Depends(ge
 
     combined_content = f"{script.content_1} {script.content_2} {script.content_3}".strip()
 
-    return {
-        "scripts_id": script.scripts_id,
-        "level": script.level,
-        "category_id": script.category_id,
-        "inspection_status": script.inspection_status,
-        "combined_content": combined_content
-    }
+    return JSONResponse(
+        content={
+            "scripts_id": script.scripts_id,
+            "level": script.level,
+            "category_id": script.category_id,
+            "inspection_status": script.inspection_status,
+            "combined_content": combined_content
+        },
+        media_type="application/json",
+        headers={"Content-Type": "application/json; charset=utf-8"}
+    )
 
 @app.get("/scripts/{scripts_id}/shortforms")
 def read_shortforms(scripts_id: int, db: Session = Depends(get_db)):
