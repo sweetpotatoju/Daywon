@@ -299,7 +299,6 @@ async def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
     for script in scripts:
         category_label = script.categories.label if script.categories else None
         category_content = script.categories.content if script.categories else None
-        # print(f"Script ID: {script.scripts_id}, Category Label: {category_label}, Category Content: {category_content}")
         if category_label == 1:
             return_value = "세금"
         elif category_label == 2:
@@ -317,7 +316,6 @@ async def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
             return_value=return_value
         ))
 
-    print(f"Result: {result}")
     return result
 
 
@@ -784,9 +782,9 @@ async def get_count_data(db: Session = Depends(get_db)):
     user_count = crud.get_user_count(db)
 
     return {
-        "created_problem_count": created_problem_count,
+        "created_problem": created_problem_count,
         "true_questions_count": true_questions_count,
-        "user_count": user_count
+        "get_user_count": user_count
     }
 
 
