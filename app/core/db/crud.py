@@ -477,6 +477,14 @@ def get_user_history(db: Session, user_id: int, T_F: bool = None):
     return query.all()
 
 
+def get_user_by_email_and_name(db: Session, email: str, name: str):
+    return db.query(User).filter(User.e_mail == email, User.name == name).first()
+
+
+def get_user_by_nickname_and_name(db: Session, nickname: str, name: str):
+    return db.query(User).filter(User.nickname == nickname, User.name == name).first()
+
+
 # ranking
 
 def create_ranking(db: Session, ranking_data):
@@ -501,7 +509,7 @@ def update_ranking_points(db: Session, user_id: int, new_points):
 
 def get_ranking(db: Session):
     ranking = (
-        db.query(Ranking, User.nickname)
+        db.query(Ranking, User.nickname
         .join(User, Ranking.user_id == User.user_id)
         .filter(Ranking.ranking_position <= 3)
         .order_by(Ranking.ranking_position)
