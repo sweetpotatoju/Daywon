@@ -509,20 +509,21 @@ def update_ranking_points(db: Session, user_id: int, new_points):
 
 def get_ranking(db: Session):
     ranking = (
-        db.query(Ranking, User.nickname
+        db.query(Ranking.ranking_position, Ranking.user_id, User.nickname, Ranking.user_point)
         .join(User, Ranking.user_id == User.user_id)
         .filter(Ranking.ranking_position <= 3)
         .order_by(Ranking.ranking_position)
         .all()
     )
 
-    # ranking은 이제 (Ranking 객체, User.nickname) 형태의 튜플 리스트입니다.
+    # ranking은 이제 (ranking_position, user_id, nickname, points) 형태의 튜플 리스트입니다.
     result = []
-    for rank, nickname in ranking:
+    for ranking_position, user_id, nickname, user_point in ranking:
         result.append({
-            'ranking_position': rank.ranking_position,
-            'user_id': rank.user_id,
-            'nickname': nickname
+            'ranking_position': ranking_position,
+            'user_id': user_id,
+            'nickname': nickname,
+            'points': user_point
         })
     return result
 
