@@ -678,9 +678,6 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     }
     return {"status": "success"}  # 성공 시 명확한 메시지 반환
 
-def get_video_stream(file_contents):
-    yield from file_contents
-
 
 @app.post("/admins/login_mobile")
 async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
@@ -712,7 +709,6 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
 
     remote_video_url = shortform_data.form_url
     video_response = None
-    remote_video_url = "completed_video_1.mp4"
     video_url = None
     if remote_video_url:
         remote_file_path = f"/video/{remote_video_url}"
