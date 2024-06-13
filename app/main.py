@@ -760,8 +760,8 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
 
 
 @app.get("/read/scripts/random/")
-def read_random_script(category_label: int, db: Session = Depends(get_db)):
-    script = crud.get_random_script_by_category_label(db, category_label)
+def read_random_script(category_label: int, level: int, db: Session = Depends(get_db)):
+    script = crud.get_random_script_by_category_label_and_level(db, category_label, level)
     if script is None:
         raise HTTPException(status_code=404, detail="Script not found")
 

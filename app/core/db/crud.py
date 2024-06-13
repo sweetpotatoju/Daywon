@@ -559,7 +559,7 @@ def get_scripts(db: Session):
     return db.query(Scripts).all()
 
 
-def get_random_script_by_category_label(db: Session, category_label: int):
+def get_random_script_by_category_label_and_level(db: Session, category_label: int, level: int):
     # 1. Find all categories with the given label
     categories = db.query(Category).filter(Category.label == category_label).all()
 
@@ -569,14 +569,15 @@ def get_random_script_by_category_label(db: Session, category_label: int):
     # 2. Randomly select one of these categories
     selected_category = random.choice(categories)
 
-    # 3. Find all scripts with the selected category_id and inspection_status True
+    # 3. Find all scripts with the selected category_id, level, and inspection_status True
     scripts = db.query(Scripts).filter(
         Scripts.category_id == selected_category.category_id,
+        Scripts.level == level,
         Scripts.inspection_status == True
     ).all()
 
     if not scripts:
-        return None  # No scripts found with the given category_id and inspection_status True
+        return None  # No scripts found with the given category_id, level, and inspection_status True
 
     # 4. Randomly select and return one of these scripts
     return random.choice(scripts)
