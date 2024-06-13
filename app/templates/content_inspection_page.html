@@ -458,17 +458,18 @@
                         <p>No case script available.</p>
                     {% endif %}
                 </div>
-
-                {% if video_url %}
-                    <div id="video-container">
-                        <video controls width="360" height="640">
-                        <source src="{{ video_url }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
+                <div id="shortform-content">
+                    {% if video_url %}
+                        <div id="video-container">
+                            <video controls width="360" height="640">
+                            <source src="{{ video_url }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
                     {% else %}
                         <p>영상을 불러오지 못했습니다.</p>
                     {% endif %}
+                </div>
             </div>
 
             <div id="learning-problems">

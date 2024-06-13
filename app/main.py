@@ -712,25 +712,29 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     problem_data = crud.get_question_by_script_id(db, content_id)
     comment_data = crud.get_comment_by_script_id(db, content_id)
 
-    remote_video_url = shortform_data.form_url
-    video_response = None
-    remote_video_url = "completed_video_1.mp4"
     video_url = None
-    if remote_video_url:
-        remote_file_path = f"/video/{remote_video_url}"
-        try:
-            file_contents = read_binary_file_from_ftp(remote_file_path)
+    remote_file_path = ""
 
-            if file_contents:
-                video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
-                video_url = request.url_for("stream_video", video_path=remote_video_url)
-            else:
-                # raise HTTPException(status_code=500, detail="Failed to retrieve video")
-                video_url = None
-        except Exception as e:
-            # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+    if shortform_data.form_url:
+        remote_video_url = shortform_data.form_url
+        remote_file_path = f"/video/{remote_video_url}"
+
+    else:
+        remote_video_url = "completed_video_1.mp4"
+        video_response = None
+
+    try:
+        file_contents = read_binary_file_from_ftp(remote_file_path)
+
+        if file_contents:
+            video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
+            video_url = request.url_for("stream_video", video_path=remote_video_url)
+        else:
+            # raise HTTPException(status_code=500, detail="Failed to retrieve video")
             video_url = None
-    # video_url = request.url_for("stream_video", video_path=remote_video_url)
+    except Exception as e:
+        # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+        video_url = None
 
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
@@ -741,6 +745,46 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
         "comment_data": comment_data,
         "video_url": video_url  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
     })
+
+
+@app.get("/get_stream_video/{scripts_id}")
+async def get_stream_video(request: Request, scripts_id: int, db: Session = Depends(get_db)):
+    script_data = crud.get_script(db, scripts_id)
+    if script_data is None:
+        raise HTTPException(status_code=404, detail="Script not found")
+
+    shortform_data = crud.get_shortform_by_scripts_id(db, scripts_id)
+
+    video_url = None
+    remote_file_path = ""
+
+    if shortform_data.form_url:
+        remote_video_url = shortform_data.form_url
+        remote_file_path = f"/video/{remote_video_url}"
+
+    else:
+        remote_video_url = "completed_video_1.mp4"
+        video_response = None
+
+    try:
+        file_contents = read_binary_file_from_ftp(remote_file_path)
+
+        if file_contents:
+            video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
+            video_url = request.url_for("stream_video", video_path=remote_video_url)
+        else:
+            # raise HTTPException(status_code=500, detail="Failed to retrieve video")
+            video_url = None
+    except Exception as e:
+        # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+        video_url = None
+
+    return {
+        "request": request,
+        "scripts_id": scripts_id,
+        "shortform_data": shortform_data,
+        "video_url": video_url  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
+    }
 
 
 @app.get("/stream_video/{video_path}")
@@ -754,11 +798,6 @@ async def stream_video(request: Request, video_path: str):
             raise HTTPException(status_code=500, detail="Failed to retrieve video")
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
-
-
-@app.get("/get_videos/", response_model=List[str])
-async def get_videos():
-    return list_files()
 
 
 @app.get("/get_all_ranking/")
@@ -775,11 +814,11 @@ async def get_all_ranking(db: Session = Depends(get_db)):
 
 
 @app.get("/refresh_data/{scripts_id}")
-async def refresh_data(scripts_id : int, db: Session = Depends(get_db)):
+async def refresh_data(scripts_id: int, db: Session = Depends(get_db)):
     scripts = crud.get_script(db, scripts_id)
     questions = crud.get_question_by_script_id(db, scripts_id)
     comments = crud.get_comment_by_script_id(db, scripts_id)
-    case_scripts = crud.get_case_scripts_by_script_id(db,scripts_id)
+    case_scripts = crud.get_case_scripts_by_script_id(db, scripts_id)
     shortform = crud.get_shortform_by_scripts_id(db, scripts_id)
 
     return {
