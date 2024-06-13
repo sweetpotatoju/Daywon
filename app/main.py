@@ -4,6 +4,7 @@ from fastapi import HTTPException, Form, Depends
 import os
 
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 import re
 
