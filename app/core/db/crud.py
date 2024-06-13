@@ -509,9 +509,9 @@ def update_ranking_points(db: Session, user_id: int, new_points):
 
 def get_ranking(db: Session):
     ranking = (
-        db.query(Ranking, User.nickname)
-        .join(User, Ranking.user_id == User.id)
-        .filter(Ranking.ranking_position <= 20)
+        db.query(Ranking, User.nickname
+        .join(User, Ranking.user_id == User.user_id)
+        .filter(Ranking.ranking_position <= 3)
         .order_by(Ranking.ranking_position)
         .all()
     )
