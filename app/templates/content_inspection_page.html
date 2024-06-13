@@ -227,9 +227,81 @@
 
         }
 
-        function refreshContent() {
-            //새로 고침 함수
+        async function refreshContent() {
+            try {
+                const response = await fetch('/refresh_data/');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+
+                document.getElementById('concept-scripts').innerHTML = `
+                    <h2>개념 스크립트</h2>
+                    ${data.script_data ? `
+                        <p>스크립트 id: ${data.script_data.scripts_id}</p>
+                        <ul>
+                            <li>개념 1: ${data.script_data.content_1}</li>
+                            <li>개념 2: ${data.script_data.content_2}</li>
+                            <li>개념 3: ${data.script_data.content_3}</li>
+                        </ul>
+                    ` : '<p>No script available.</p>'}
+                `;
+
+                document.getElementById('shortform-examples').innerHTML = `
+                    <h2>숏폼/예시스크립트</h2>
+                    <p>여기에는 숏폼 비디오 및 예시 스크립트가 포함됩니다.</p>
+                    ${data.case_script_data ? `
+                        <ul>
+                            <li>1: ${data.case_script_data.content_1}</li>
+                            <li>2: ${data.case_script_data.content_2}</li>
+                            <li>3: ${data.case_script_data.content_3}</li>
+                            <li>4: ${data.case_script_data.content_4}</li>
+                            <li>5: ${data.case_script_data.content_5}</li>
+                            <li>6: ${data.case_script_data.content_6}</li>
+                        </ul>
+                    ` : '<p>No case script available.</p>'}
+
+                    ${data.shortform && data.shortform.form_url ? `
+                        <div id="video-container">
+                            <video controls width="360" height="640">
+                                <source src="${data.shortform.form_url}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    ` : '<p>영상을 불러오지 못했습니다.</p>'}
+                `;
+
+                document.getElementById('learning-problems').innerHTML = `
+                    <h2>학습 문제 및 해설</h2>
+                    ${data.problem_data ? `
+                        <p>${data.problem_data.question}</p>
+                        <ul>
+                            <li>1: ${data.problem_data.option_1}</li>
+                            <li>2: ${data.problem_data.option_2}</li>
+                            <li>3: ${data.problem_data.option_3}</li>
+                            <li>4: ${data.problem_data.option_4}</li>
+                            <li>정답: ${data.problem_data.answer_option}</li>
+                        </ul>
+                    ` : '<p>No problems available.</p>'}
+
+                    ${data.comment_data ? `
+                        <ul>
+                            <li>해설 1: ${data.comment_data.comment_1}</li>
+                            <li>해설 2: ${data.comment_data.comment_2}</li>
+                            <li>해설 3: ${data.comment_data.comment_3}</li>
+                            <li>해설 4: ${data.comment_data.comment_4}</li>
+                        </ul>
+                    ` : '<p>No comments available.</p>'}
+                `;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
         }
+
+        // Load data initially when the page loads
+        document.addEventListener('DOMContentLoaded', (event) => {
+            refreshContent();
+        });
 
         async function sendMessage(chatbotType) {
             // 입력 필드 요소를 가져옵니다.
