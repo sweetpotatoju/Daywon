@@ -386,7 +386,7 @@ def get_latest_shortform(db):
 
 # admin
 def get_admin_by_admin_name(db: Session, admin_name: str) -> object:
-    db_admin=db.query(Admin).filter(Admin.admin_name == admin_name).first()
+    db_admin = db.query(Admin).filter(Admin.admin_name == admin_name).first()
     return db_admin.qualification_level
 
 
@@ -477,6 +477,14 @@ def get_user_history(db: Session, user_id: int, T_F: bool = None):
     return query.all()
 
 
+def get_user_by_email_and_name(db: Session, email: str, name: str):
+    return db.query(User).filter(User.e_mail == email, User.name == name).first()
+
+
+def get_user_by_nickname_and_name(db: Session, nickname: str, name: str):
+    return db.query(User).filter(User.nickname == nickname, User.name == name).first()
+
+
 # ranking
 
 def create_ranking(db: Session, ranking_data):
@@ -497,6 +505,27 @@ def update_ranking_points(db: Session, user_id: int, new_points):
         db.commit()
         return ranking
     return None
+
+
+def get_ranking(db: Session):
+    ranking = (
+        db.query(Ranking.ranking_position, Ranking.user_id, User.nickname, Ranking.user_point)
+        .join(User, Ranking.user_id == User.user_id)
+        .filter(Ranking.ranking_position <= 3)
+        .order_by(Ranking.ranking_position)
+        .all()
+    )
+
+    # ranking은 이제 (ranking_position, user_id, nickname, points) 형태의 튜플 리스트입니다.
+    result = []
+    for ranking_position, user_id, nickname, user_point in ranking:
+        result.append({
+            'ranking_position': ranking_position,
+            'user_id': user_id,
+            'nickname': nickname,
+            'points': user_point
+        })
+    return result
 
 
 # 생성된 문제 개수

@@ -299,6 +299,7 @@ async def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
     for script in scripts:
         category_label = script.categories.label if script.categories else None
         category_content = script.categories.content if script.categories else None
+        # print(f"Script ID: {script.scripts_id}, Category Label: {category_label}, Category Content: {category_content}")
         if category_label == 1:
             return_value = "세금"
         elif category_label == 2:
@@ -316,6 +317,7 @@ async def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
             return_value=return_value
         ))
 
+    print(f"Result: {result}")
     return result
 
 
@@ -710,13 +712,8 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     comment_data = crud.get_comment_by_script_id(db, content_id)
 
     remote_video_url = shortform_data.form_url
-    if remote_video_url:
-        print("success : shortform_data.form_url을 찾았습니다.")
-
-    else:
-        remote_video_url = "completed_video_1.mp4"
-        print("error : shortform_data.form_url을 찾지 못했습니다.")
     video_response = None
+    remote_video_url = "completed_video_1.mp4"
     video_url = None
     if remote_video_url:
         remote_file_path = f"/video/{remote_video_url}"
@@ -733,7 +730,7 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
             # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
             video_url = None
     # video_url = request.url_for("stream_video", video_path=remote_video_url)
-    print(script_data.scripts_id)
+
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
         "script_data": script_data,
@@ -761,6 +758,19 @@ async def stream_video(request: Request, video_path: str):
 @app.get("/get_videos/", response_model=List[str])
 async def get_videos():
     return list_files()
+
+
+@app.get("/get_all_ranking/")
+async def get_all_ranking(db: Session = Depends(get_db)):
+    try:
+        ranking = crud.get_ranking(db)
+        return ranking
+    except SQLAlchemyError as e:
+        # log the er    ror (you can use logging module)
+        raise HTTPException(status_code=500, detail="An error occurred while fetching the ranking.")
+    except Exception as e:
+        # log the error (you can use logging module)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
 @app.get("/refresh_data/{scripts_id}")
