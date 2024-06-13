@@ -505,7 +505,7 @@ def get_ranking(db: Session):
 
 
 # 생성된 문제 개수
-def get_created_problem(db: Session):
+def get_created_problem_count(db: Session):
     count = db.query(func.count(Scripts.scripts_id)).scalar()
     return count
 
