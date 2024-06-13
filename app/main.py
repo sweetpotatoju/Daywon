@@ -710,8 +710,13 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     comment_data = crud.get_comment_by_script_id(db, content_id)
 
     remote_video_url = shortform_data.form_url
+    if remote_video_url:
+        print("success : shortform_data.form_url을 찾았습니다.")
+
+    else:
+        remote_video_url = "completed_video_1.mp4"
+        print("error : shortform_data.form_url을 찾지 못했습니다.")
     video_response = None
-    remote_video_url = "completed_video_1.mp4"
     video_url = None
     if remote_video_url:
         remote_file_path = f"/video/{remote_video_url}"
@@ -728,7 +733,7 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
             # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
             video_url = None
     # video_url = request.url_for("stream_video", video_path=remote_video_url)
-
+    print(script_data.scripts_id)
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
         "script_data": script_data,
@@ -758,13 +763,13 @@ async def get_videos():
     return list_files()
 
 
-@app.get("/refresh_data/")
-async def refresh_data(db: Session = Depends(get_db)):
-    scripts = crud.get_scripts(db)
-    questions = crud.get_questions(db)
-    comments = crud.get_comments(db)
-    case_scripts = crud.get_case_scripts(db)
-    shortform = crud.get_shortform(db)
+@app.get("/refresh_data/{scripts_id}")
+async def refresh_data(scripts_id : int, db: Session = Depends(get_db)):
+    scripts = crud.get_script(db, scripts_id)
+    questions = crud.get_question_by_script_id(db, scripts_id)
+    comments = crud.get_comment_by_script_id(db, scripts_id)
+    case_scripts = crud.get_case_scripts_by_script_id(db,scripts_id)
+    shortform = crud.get_shortform_by_scripts_id(db, scripts_id)
 
     return {
         "script_data": scripts,
