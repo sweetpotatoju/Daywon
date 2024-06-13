@@ -4,6 +4,7 @@ from fastapi import HTTPException, Form, Depends
 import os
 
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 import re
 
@@ -758,6 +759,18 @@ async def stream_video(request: Request, video_path: str):
 @app.get("/get_videos/", response_model=List[str])
 async def get_videos():
     return list_files()
+
+@app.get("/get_all_ranking/")
+async def get_all_ranking(db: Session = Depends(get_db)):
+    try:
+        ranking = crud.get_ranking(db)
+        return ranking
+    except SQLAlchemyError as e:
+        # log the error (you can use logging module)
+        raise HTTPException(status_code=500, detail="An error occurred while fetching the ranking.")
+    except Exception as e:
+        # log the error (you can use logging module)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
 @app.get("/refresh_data/")

@@ -386,7 +386,7 @@ def get_latest_shortform(db):
 
 # admin
 def get_admin_by_admin_name(db: Session, admin_name: str) -> object:
-    db_admin=db.query(Admin).filter(Admin.admin_name == admin_name).first()
+    db_admin = db.query(Admin).filter(Admin.admin_name == admin_name).first()
     return db_admin.qualification_level
 
 
@@ -497,6 +497,11 @@ def update_ranking_points(db: Session, user_id: int, new_points):
         db.commit()
         return ranking
     return None
+
+
+def get_ranking(db: Session):
+    ranking = db.query(Ranking).filter(Ranking.ranking_position <= 20).order_by(Ranking.ranking_position).all()
+    return ranking
 
 
 # 생성된 문제 개수
