@@ -766,7 +766,7 @@ async def get_all_ranking(db: Session = Depends(get_db)):
         ranking = crud.get_ranking(db)
         return ranking
     except SQLAlchemyError as e:
-        # log the error (you can use logging module)
+        # log the er    ror (you can use logging module)
         raise HTTPException(status_code=500, detail="An error occurred while fetching the ranking.")
     except Exception as e:
         # log the error (you can use logging module)

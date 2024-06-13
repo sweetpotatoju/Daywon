@@ -500,8 +500,23 @@ def update_ranking_points(db: Session, user_id: int, new_points):
 
 
 def get_ranking(db: Session):
-    ranking = db.query(Ranking).filter(Ranking.ranking_position <= 20).order_by(Ranking.ranking_position).all()
-    return ranking
+    ranking = (
+        db.query(Ranking, User.nickname)
+        .join(User, Ranking.user_id == User.user_id)
+        .filter(Ranking.ranking_position <= 3)
+        .order_by(Ranking.ranking_position)
+        .all()
+    )
+
+    # ranking은 이제 (Ranking 객체, User.nickname) 형태의 튜플 리스트입니다.
+    result = []
+    for rank, nickname in ranking:
+        result.append({
+            'ranking_position': rank.ranking_position,
+            'user_id': rank.user_id,
+            'nickname': nickname
+        })
+    return result
 
 
 # 생성된 문제 개수
