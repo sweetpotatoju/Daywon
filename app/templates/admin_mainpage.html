@@ -113,9 +113,9 @@
         </div>
         <div class="account-info">
             <div class="count">
-                <p>생성된 문제 개수: {{created_problem_count}}</p>
-                <p>검토 완료된 문제 개수: {{true_questions_count}}</p>
-                <p>이용자 수: {{user_count}}</p>
+                <p>생성된 문제 개수: {{data.created_problem}}</p>
+                <p>검토 완료된 문제 개수: {{data.true_questions_count}}</p>
+                <p>이용자 수: {{data.get_user_count}}</p>
             </div>
         </div>
         <div class="section-title">
@@ -130,7 +130,7 @@
 
     <script>
         // 사용자 권한 레벨 설정
-        var userLevel = document.querySelector('.greeting').getAttribute('data-a    dmin-level');
+        var userLevel = document.querySelector('.greeting').getAttribute('data-admin-level');
 
         // 버튼 요소 가져오기
         var createQuestionBtn = document.getElementById('create-question');
