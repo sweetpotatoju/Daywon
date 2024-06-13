@@ -51,7 +51,7 @@ app = FastAPI()
 
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=templates_dir)
-# app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # 세션 설정을 위한 비밀 키 설정 (실제 환경에서는 환경 변수로 설정)
 app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
@@ -173,9 +173,9 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user_create=user)
 
 
-@app.get("/users/{user_name}/readuser", response_model=schemas.UserBase)
-async def read_user(user_name: str, db: Session = Depends(get_db)):
-    user = crud.get_user(db, user_name)
+@app.get("/users/{user_id}/readuser", response_model=schemas.UserBase)
+async def read_user(user_id: int, db: Session = Depends(get_db)):
+    user = crud.get_user(db, user_id)
     return user
 
 
