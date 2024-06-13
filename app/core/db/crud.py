@@ -451,8 +451,8 @@ def get_user_password(db: Session, admin_id: int):
     return None
 
 
-def create_user_history(db: Session, user_id: int, script_id: int, T_F: bool):
-    user_history = History(user_id=user_id, script_id=script_id, T_F=T_F)
+def create_user_history(db: Session, user_id: int, scripts_id: int, T_F: bool):
+    user_history = History(user_id=user_id, scripts_id=scripts_id, T_F=T_F)
     db.add(user_history)
     db.commit()
     db.refresh(user_history)

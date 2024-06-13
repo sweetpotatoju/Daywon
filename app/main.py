@@ -256,8 +256,8 @@ def get_user_ranking(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.post("/user_history/")
-def create_user_history(user_id: int, script_id: int, T_F: bool, db: Session = Depends(get_db)):
-    crud.create_user_history(db, user_id=user_id, script_id=script_id, T_F=T_F)
+def create_user_history(user_id: int, scripts_id: int, T_F: bool, db: Session = Depends(get_db)):
+    crud.create_user_history(db, user_id=user_id, scripts_id=scripts_id, T_F=T_F)
     return {"success"}
 
 
