@@ -4,7 +4,6 @@ from fastapi import HTTPException, Form, Depends
 import os
 
 from pydantic import BaseModel
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 import re
 
@@ -17,8 +16,7 @@ from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
-    update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name, \
-    get_user_by_email_and_name, get_user_by_nickname_and_name
+    update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name
 from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
     AdminUpdate, AdminLogin, CreateContentRequest, ScriptsRead
@@ -191,19 +189,7 @@ async def check_email(email: str, db: Session = Depends(get_db)):
         return {"is_available": False}
     return {"is_available": True}
 
-@app.post("/user_find-password")
-def find_password(email: str, name: str, db: Session = Depends(get_db)):
-    user = get_user_by_email_and_name(db, email, name)
-    if user:
-        return {"password": user.hashed_password}
-    raise HTTPException(status_code=404, detail="User not found")
 
-@app.post("/user_find-email")
-def find_email(nickname: str, name: str, db: Session = Depends(get_db)):
-    user = get_user_by_nickname_and_name(db, nickname, name)
-    if user:
-        return {"email": user.e_mail}
-    raise HTTPException(status_code=404, detail="User not found")
 @app.get("/users/check_nickname/")
 async def check_nickname(nickname: str, db: Session = Depends(get_db)):
     if crud.get_user_by_nickname(db, nickname=nickname):
@@ -787,13 +773,13 @@ async def get_all_ranking(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
 
-@app.get("/refresh_data/")
-async def refresh_data(db: Session = Depends(get_db)):
-    scripts = crud.get_scripts(db)
-    questions = crud.get_questions(db)
-    comments = crud.get_comments(db)
-    case_scripts = crud.get_case_scripts(db)
-    shortform = crud.get_shortform(db)
+@app.get("/refresh_data/{scripts_id}")
+async def refresh_data(scripts_id : int, db: Session = Depends(get_db)):
+    scripts = crud.get_script(db, scripts_id)
+    questions = crud.get_question_by_script_id(db, scripts_id)
+    comments = crud.get_comment_by_script_id(db, scripts_id)
+    case_scripts = crud.get_case_scripts_by_script_id(db,scripts_id)
+    shortform = crud.get_shortform_by_scripts_id(db, scripts_id)
 
     return {
         "script_data": scripts,
