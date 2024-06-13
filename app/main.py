@@ -784,9 +784,9 @@ async def get_count_data(db: Session = Depends(get_db)):
     user_count = crud.get_user_count(db)
 
     return {
-        "created_problem": created_problem_count,
+        "created_problem_count": created_problem_count,
         "true_questions_count": true_questions_count,
-        "get_user_count": user_count
+        "user_count": user_count
     }
 
 
