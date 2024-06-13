@@ -99,12 +99,16 @@ async def read_root(request: Request):
 
 
 @app.get("/admin_mainpage", response_class=HTMLResponse)
-async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user)):
+async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user),
+                         db: Session = Depends(get_db)):
     if not current_user_admin:
         return RedirectResponse(url="/admin_login", status_code=303)
     print()
+    data = await get_count_data(db)
     return templates.TemplateResponse("admin_mainpage.html",
-                                      {"request": request, "current_user_admin": current_user_admin})
+                                      {"request": request,
+                                       "current_user_admin": current_user_admin,
+                                       "data": data})
 
 
 @app.get("/read_create_content/")
@@ -295,7 +299,7 @@ async def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
     for script in scripts:
         category_label = script.categories.label if script.categories else None
         category_content = script.categories.content if script.categories else None
-        #print(f"Script ID: {script.scripts_id}, Category Label: {category_label}, Category Content: {category_content}")
+        # print(f"Script ID: {script.scripts_id}, Category Label: {category_label}, Category Content: {category_content}")
         if category_label == 1:
             return_value = "세금"
         elif category_label == 2:
@@ -663,22 +667,6 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     response = RedirectResponse(url="/admin_mainpage", status_code=303)
     return response
 
-@app.post("/admins/login_mobile")
-async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
-                      db: Session = Depends(get_db)):
-    admin = crud.get_active_admin_by_admin_name(db, admin_name)
-    if not admin or admin.password != password:
-        return {"status": "fail"}
-
-    session = request.session
-    session["user"] = {
-        "admin_id": admin.admin_id,
-        "admin_name": admin.admin_name,
-        "qualification_level": admin.qualification_level
-    }
-    return {"status": "success"}  # 성공 시 명확한 메시지 반환
-
-
 
 @app.post("/admins/login_mobile")
 async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
@@ -695,6 +683,21 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     }
     return {"status": "success"}  # 성공 시 명확한 메시지 반환
 
+
+@app.post("/admins/login_mobile")
+async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
+                      db: Session = Depends(get_db)):
+    admin = crud.get_active_admin_by_admin_name(db, admin_name)
+    if not admin or admin.password != password:
+        return {"status": "fail"}
+
+    session = request.session
+    session["user"] = {
+        "admin_id": admin.admin_id,
+        "admin_name": admin.admin_name,
+        "qualification_level": admin.qualification_level
+    }
+    return {"status": "success"}  # 성공 시 명확한 메시지 반환
 
 
 @app.get("/nextpage/{content_id}", response_class=HTMLResponse)
@@ -721,12 +724,12 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
                 video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
                 video_url = request.url_for("stream_video", video_path=remote_video_url)
             else:
-                #raise HTTPException(status_code=500, detail="Failed to retrieve video")
+                # raise HTTPException(status_code=500, detail="Failed to retrieve video")
                 video_url = None
         except Exception as e:
-            #raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+            # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
             video_url = None
-    #video_url = request.url_for("stream_video", video_path=remote_video_url)
+    # video_url = request.url_for("stream_video", video_path=remote_video_url)
 
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
@@ -756,8 +759,9 @@ async def stream_video(request: Request, video_path: str):
 async def get_videos():
     return list_files()
 
+
 @app.get("/refresh_data/")
-async def refresh_data( db: Session = Depends(get_db)):
+async def refresh_data(db: Session = Depends(get_db)):
     scripts = crud.get_scripts(db)
     questions = crud.get_questions(db)
     comments = crud.get_comments(db)
@@ -772,18 +776,18 @@ async def refresh_data( db: Session = Depends(get_db)):
         "shortform": shortform
     }
 
-@app.get("/refresh_data/")
-async def get_count_data( db: Session = Depends(get_db)):
-    created_problem = crud.get_created_problem(db)
+
+@app.get("/get_count_data/")
+async def get_count_data(db: Session = Depends(get_db)):
+    created_problem_count = crud.get_created_problem_count(db)
     true_questions_count = crud.get_true_questions_count(db)
     user_count = crud.get_user_count(db)
 
     return {
-        "created_problem": created_problem,
+        "created_problem": created_problem_count,
         "true_questions_count": true_questions_count,
         "get_user_count": user_count
     }
-
 
 
 if __name__ == "__main__":

@@ -500,7 +500,7 @@ def update_ranking_points(db: Session, user_id: int, new_points):
 
 
 # 생성된 문제 개수
-def get_created_problem(db: Session):
+def get_created_problem_count(db: Session):
     count = db.query(func.count(Scripts.scripts_id)).scalar()
     return count
 
