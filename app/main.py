@@ -99,20 +99,12 @@ async def read_root(request: Request):
 
 
 @app.get("/admin_mainpage", response_class=HTMLResponse)
-async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user),
-                         db: Session = Depends(get_db)):
+async def admin_mainpage(request: Request, current_user_admin: dict = Depends(get_current_user)):
     if not current_user_admin:
         return RedirectResponse(url="/admin_login", status_code=303)
-    created_problem_count = crud.get_created_problem(db)
-    true_questions_count = crud.get_true_questions_count(db)
-    user_count = crud.get_user_count(db)
+    print()
     return templates.TemplateResponse("admin_mainpage.html",
-                                      {"request": request,
-                                       "current_user_admin": current_user_admin,
-                                       "created_problem_count": created_problem_count,
-                                       "true_questions_count": true_questions_count,
-                                       "user_count": user_count}
-                                      )
+                                      {"request": request, "current_user_admin": current_user_admin})
 
 
 @app.get("/read_create_content/")
@@ -671,7 +663,6 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     response = RedirectResponse(url="/admin_mainpage", status_code=303)
     return response
 
-
 @app.post("/admins/login_mobile")
 async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
                       db: Session = Depends(get_db)):
@@ -686,7 +677,6 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
         "qualification_level": admin.qualification_level
     }
     return {"status": "success"}  # 성공 시 명확한 메시지 반환
-
 
 def get_video_stream(file_contents):
     yield from file_contents
@@ -708,6 +698,7 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     return {"status": "success"}  # 성공 시 명확한 메시지 반환
 
 
+
 @app.get("/nextpage/{content_id}", response_class=HTMLResponse)
 async def content_view(request: Request, content_id: int, db: Session = Depends(get_db)):
     script_data = crud.get_script(db, content_id)
@@ -719,7 +710,7 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     problem_data = crud.get_question_by_script_id(db, content_id)
     comment_data = crud.get_comment_by_script_id(db, content_id)
 
-    # remote_video_url = shortform_data.form_url
+    remote_video_url = shortform_data.form_url
     video_response = None
     remote_video_url = "completed_video_1.mp4"
     video_url = None
@@ -732,13 +723,13 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
                 video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
                 video_url = request.url_for("stream_video", video_path=remote_video_url)
             else:
-                # raise HTTPException(status_code=500, detail="Failed to retrieve video")
+                #raise HTTPException(status_code=500, detail="Failed to retrieve video")
                 video_url = None
         except Exception as e:
-            # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+            #raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
             video_url = None
-    # video_url = request.url_for("stream_video", video_path=remote_video_url)
-    print(script_data.scripts_id)
+    #video_url = request.url_for("stream_video", video_path=remote_video_url)
+
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
         "script_data": script_data,
@@ -767,9 +758,8 @@ async def stream_video(request: Request, video_path: str):
 async def get_videos():
     return list_files()
 
-
 @app.get("/refresh_data/")
-async def refresh_data(db: Session = Depends(get_db)):
+async def refresh_data( db: Session = Depends(get_db)):
     scripts = crud.get_scripts(db)
     questions = crud.get_questions(db)
     comments = crud.get_comments(db)
@@ -788,4 +778,4 @@ async def refresh_data(db: Session = Depends(get_db)):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=30001)
