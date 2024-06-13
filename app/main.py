@@ -4,6 +4,7 @@ from fastapi import HTTPException, Form, Depends
 import os
 
 from pydantic import BaseModel
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 import re
 
@@ -663,24 +664,6 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     response = RedirectResponse(url="/admin_mainpage", status_code=303)
     return response
 
-@app.post("/admins/login_mobile")
-async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
-                      db: Session = Depends(get_db)):
-    admin = crud.get_active_admin_by_admin_name(db, admin_name)
-    if not admin or admin.password != password:
-        return {"status": "fail"}
-
-    session = request.session
-    session["user"] = {
-        "admin_id": admin.admin_id,
-        "admin_name": admin.admin_name,
-        "qualification_level": admin.qualification_level
-    }
-    return {"status": "success"}  # 성공 시 명확한 메시지 반환
-
-def get_video_stream(file_contents):
-    yield from file_contents
-
 
 @app.post("/admins/login_mobile")
 async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
@@ -697,6 +680,21 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     }
     return {"status": "success"}  # 성공 시 명확한 메시지 반환
 
+
+@app.post("/admins/login_mobile")
+async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
+                      db: Session = Depends(get_db)):
+    admin = crud.get_active_admin_by_admin_name(db, admin_name)
+    if not admin or admin.password != password:
+        return {"status": "fail"}
+
+    session = request.session
+    session["user"] = {
+        "admin_id": admin.admin_id,
+        "admin_name": admin.admin_name,
+        "qualification_level": admin.qualification_level
+    }
+    return {"status": "success"}  # 성공 시 명확한 메시지 반환
 
 
 @app.get("/nextpage/{content_id}", response_class=HTMLResponse)
@@ -723,12 +721,12 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
                 video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
                 video_url = request.url_for("stream_video", video_path=remote_video_url)
             else:
-                #raise HTTPException(status_code=500, detail="Failed to retrieve video")
+                # raise HTTPException(status_code=500, detail="Failed to retrieve video")
                 video_url = None
         except Exception as e:
-            #raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+            # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
             video_url = None
-    #video_url = request.url_for("stream_video", video_path=remote_video_url)
+    # video_url = request.url_for("stream_video", video_path=remote_video_url)
 
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
@@ -758,8 +756,22 @@ async def stream_video(request: Request, video_path: str):
 async def get_videos():
     return list_files()
 
+
+@app.get("/get_all_ranking/")
+async def get_all_ranking(db: Session = Depends(get_db)):
+    try:
+        ranking = crud.get_ranking(db)
+        return ranking
+    except SQLAlchemyError as e:
+        # log the error (you can use logging module)
+        raise HTTPException(status_code=500, detail="An error occurred while fetching the ranking.")
+    except Exception as e:
+        # log the error (you can use logging module)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+
 @app.get("/refresh_data/")
-async def refresh_data( db: Session = Depends(get_db)):
+async def refresh_data(db: Session = Depends(get_db)):
     scripts = crud.get_scripts(db)
     questions = crud.get_questions(db)
     comments = crud.get_comments(db)
