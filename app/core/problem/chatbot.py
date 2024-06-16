@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from app.core.api import get_api_key, util_chat_api, call_api
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -22,7 +24,11 @@ class Message(BaseModel):
     message: str
 
 
-@router.post("/chatbot")
+class ChatResponse(BaseModel):
+    response: str
+
+
+@router.post("/chatbot", response_model=ChatResponse)
 async def chat(message: Message):
     user_input = message.message
 
@@ -41,4 +47,5 @@ async def chat(message: Message):
     # GPT 응답을 대화 기록에 추가
     conversation_history.append({"role": "assistant", "content": gpt_response})
 
-    return {"response": gpt_response}
+    response_data = ChatResponse(response=gpt_response)
+    return JSONResponse(content=jsonable_encoder(response_data), status_code=200)
