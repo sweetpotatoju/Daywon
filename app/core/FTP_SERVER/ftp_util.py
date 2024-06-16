@@ -86,6 +86,23 @@ def read_binary_file_from_ftp(remote_file_path):
         print(f"FTP error: {e}")
         return None
 
+
+def download_file_from_ftp(remote_file_path, local_file_path):
+    try:
+        with get_ftp_connection() as ftp:
+            with open(local_file_path, 'wb') as local_file:
+                ftp.retrbinary(f'RETR {remote_file_path}', local_file.write)
+        print(f"File {remote_file_path} downloaded to {local_file_path}")
+    except ftplib.error_perm as e:
+        print(f"Permission error: {e}")
+        raise HTTPException(status_code=403, detail=f"Permission error: {e}")
+    except ftplib.error_temp as e:
+        print(f"Temporary error: {e}")
+        raise HTTPException(status_code=503, detail=f"Temporary error: {e}")
+    except ftplib.all_errors as e:
+        print(f"FTP error: {e}")
+        raise HTTPException(status_code=500, detail=f"FTP error: {e}")
+
 # def stream_video_from_ftp(video_path: str):
 #     ftp = connect_to_ftp()
 #
