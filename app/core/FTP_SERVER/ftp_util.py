@@ -1,7 +1,7 @@
 import ftplib
 import os
 from contextlib import contextmanager
-
+from aioftp import Client
 from anyio.streams import file
 from fastapi import HTTPException
 
@@ -54,6 +54,14 @@ def upload_file_to_ftp(local_file_path, remote_directory):
         print(f"PermissionError: {e}")
     except Exception as e:
         print(f"Unexpected error: {e}")
+
+
+async def video_from_ftp(filename):
+    async with Client() as client:
+        await client.connect(setting.FTP_SERVER, port=setting.FTP_PORT)
+        await client.login(setting.FTP_USERNAME, setting.FTP_PASSWORD)
+        async with client.download_stream(filename) as stream:
+            return stream.read()
 
 
 def read_file_from_ftp(remote_directory):
