@@ -216,7 +216,7 @@ async def check_nickname(nickname: str, db: Session = Depends(get_db)):
 
 
 # 사용자 정보를 검색하는 엔드포인트
-@app.get("/users/{e_mail}", response_model=schemas.UserBase)
+@app.get("/users/{e_mail}", response_model=schemas.UserRead)
 async def read_user_by_email(email: str, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, e_mail=email)
     if not db_user:
@@ -224,7 +224,7 @@ async def read_user_by_email(email: str, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/login/", response_model=UserBase)
+@app.post("/login/", response_model=schemas.UserRead)
 async def login(credentials: Login, db: Session = Depends(get_db)):
     user = get_user_by_email(db, e_mail=credentials.e_mail)
     # 비밀번호 확인
@@ -290,7 +290,7 @@ async def update_user_history(user_id: int, scripts_id: int, T_F: bool, db: Sess
 
 
 @app.get("/users/{user_id}/profile-image")
-def get_profile_image(user_id: int, db: Session = Depends(get_db)):
+async def get_profile_image(user_id: int, db: Session = Depends(get_db)):
     profile_image_url = get_profile_image_url(user_id, db)
     if profile_image_url is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -931,7 +931,14 @@ async def read_quizzes(db: Session = Depends(get_db)):
     quizzes = crud.get_random_quizzes(db)
     if not quizzes:
         raise HTTPException(status_code=404, detail="Quizzes not found")
-    return quizzes
+    encoded_quizzes = []
+    for quiz in quizzes:
+        quiz_dict = quiz.__dict__  # Quiz 객체를 dict로 변환
+        encoded_quiz = {key: value.encode('utf-8') if isinstance(value, str) else value for key, value in
+                        quiz_dict.items()}
+        encoded_quizzes.append(encoded_quiz)
+
+    return encoded_quizzes
 
 
 @app.post("/submit-answers/")
@@ -940,15 +947,15 @@ async def submit_answers(user_answers: schemas.UserAnswers, db: Session = Depend
     score = sum(1 for answer in user_answers.answers if correct_answers[answer.enrollment_quiz_id] == answer.answer)
 
     if score <= 2:
-        return 1
+        return "1"
     elif score <= 4:
-        return 2
+        return "2"
     elif score <= 6:
-        return 3
+        return "3"
     elif score <= 8:
-        return 4
+        return "4"
     else:
-        return 5
+        return "5"
 
 
 if __name__ == "__main__":

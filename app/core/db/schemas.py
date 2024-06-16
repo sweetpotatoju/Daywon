@@ -14,7 +14,7 @@ class UserBase(BaseModel):
     level: str = "1"
     user_point: int = 0
     profile_image: int
-    user_id: int
+
 
 
 class UserCreate(UserBase):
@@ -23,6 +23,7 @@ class UserCreate(UserBase):
 
 class UserRead(UserBase):
     is_active: bool
+    user_id: int
 
 
 class PointsUpdate(BaseModel):

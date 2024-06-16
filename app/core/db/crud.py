@@ -452,7 +452,7 @@ def get_user_password(db: Session, admin_id: int):
 
 
 def create_user_history(db: Session, user_id: int, script_id: int, T_F: bool):
-    user_history = History(user_id=user_id, script_id=script_id, T_F=T_F)
+    user_history = History(user_id=user_id, scripts_id=script_id, T_F=T_F)
     db.add(user_history)
     db.commit()
     db.refresh(user_history)
@@ -609,3 +609,20 @@ def get_case_scripts(db: Session):
 
 def get_shortform(db: Session):
     return db.query(Shortform).all()
+
+
+def get_profile_image_url(user_id: int, db: Session) -> str:
+    result = db.query(Profile_images.image_url). \
+        join(User, User.profile_image == Profile_images.image_id). \
+        filter(User.user_id == user_id).first()
+    return result.image_url if result else None
+
+
+def get_random_quizzes(db: Session, limit: int = 10):
+    quizzes = db.query(models.Enrollment_quiz).all()
+    return random.sample(quizzes, limit)
+
+
+def get_correct_answers(db: Session, quiz_ids: List[int]):
+    quizzes = db.query(models.Enrollment_quiz).filter(models.Enrollment_quiz.enrollment_quiz_id.in_(quiz_ids)).all()
+    return {quiz.enrollment_quiz_id: quiz.correct for quiz in quizzes}
