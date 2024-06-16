@@ -772,6 +772,7 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     })
 
 
+# FastAPI endpoint for streaming video
 @app.get("/get_stream_video/{scripts_id}")
 async def get_stream_video(request: Request, scripts_id: int, db: Session = Depends(get_db)):
     script_data = crud.get_script(db, scripts_id)
@@ -788,11 +789,11 @@ async def get_stream_video(request: Request, scripts_id: int, db: Session = Depe
         remote_video_url = "completed_video_1.mp4"
         remote_file_path = None
 
-    video_stream = await video_from_ftp(remote_file_path)
+    video_stream = video_from_ftp(remote_file_path)
     if video_stream:
         return StreamingResponse(video_stream, media_type='video/mp4')
     else:
-        return HTTPException(status_code=404, detail="Video not found")
+        raise HTTPException(status_code=404, detail="Video not found")
 
 
 @app.get("/read/scripts/random/")
