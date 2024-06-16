@@ -1,11 +1,11 @@
 import random
-from typing import Any
+from typing import Any, List
 
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 from app.core.db import models, schemas
 from app.core.db.models import Scripts, Question, Shortform, Admin, History, Ranking, CaseScripts, Comment, Category, \
-    User
+    User, Profile_images
 from passlib.hash import bcrypt
 
 from app.core.db.schemas import CategoryCreate, CategoryUpdate
@@ -386,7 +386,7 @@ def get_latest_shortform(db):
 
 # admin
 def get_admin_by_admin_name(db: Session, admin_name: str) -> object:
-    db_admin=db.query(Admin).filter(Admin.admin_name == admin_name).first()
+    db_admin = db.query(Admin).filter(Admin.admin_name == admin_name).first()
     return db_admin.qualification_level
 
 
@@ -451,8 +451,8 @@ def get_user_password(db: Session, admin_id: int):
     return None
 
 
-def create_user_history(db: Session, user_id: int, scripts_id: int, T_F: bool):
-    user_history = History(user_id=user_id, scripts_id=scripts_id, T_F=T_F)
+def create_user_history(db: Session, user_id: int, script_id: int, T_F: bool):
+    user_history = History(user_id=user_id, scripts_id=script_id, T_F=T_F)
     db.add(user_history)
     db.commit()
     db.refresh(user_history)
@@ -477,6 +477,14 @@ def get_user_history(db: Session, user_id: int, T_F: bool = None):
     return query.all()
 
 
+def get_user_by_email_and_name(db: Session, email: str, name: str):
+    return db.query(User).filter(User.e_mail == email, User.name == name).first()
+
+
+def get_user_by_nickname_and_name(db: Session, nickname: str, name: str):
+    return db.query(User).filter(User.nickname == nickname, User.name == name).first()
+
+
 # ranking
 
 def create_ranking(db: Session, ranking_data):
@@ -499,8 +507,29 @@ def update_ranking_points(db: Session, user_id: int, new_points):
     return None
 
 
+def get_ranking(db: Session):
+    ranking = (
+        db.query(Ranking.ranking_position, Ranking.user_id, User.nickname, Ranking.user_point)
+        .join(User, Ranking.user_id == User.user_id)
+        .filter(Ranking.ranking_position <= 3)
+        .order_by(Ranking.ranking_position)
+        .all()
+    )
+
+    # ranking은 이제 (ranking_position, user_id, nickname, points) 형태의 튜플 리스트입니다.
+    result = []
+    for ranking_position, user_id, nickname, user_point in ranking:
+        result.append({
+            'ranking_position': ranking_position,
+            'user_id': user_id,
+            'nickname': nickname,
+            'points': user_point
+        })
+    return result
+
+
 # 생성된 문제 개수
-def get_created_problem(db: Session):
+def get_created_problem_count(db: Session):
     count = db.query(func.count(Scripts.scripts_id)).scalar()
     return count
 
@@ -519,7 +548,6 @@ def get_user_count(db: Session):
 
 def update_inspection_status(db: Session, scripts_id: int):
     script = db.query(Scripts).filter(Scripts.scripts_id == scripts_id).first()
-
     if script:
         script.inspection_status = True
         db.commit()
@@ -529,6 +557,42 @@ def update_inspection_status(db: Session, scripts_id: int):
 
 def get_scripts(db: Session):
     return db.query(Scripts).all()
+
+
+def get_random_script_by_category_label_and_level(db: Session, category_label: int, level: int):
+    # 1. Find all categories with the given label
+    categories = db.query(Category).filter(Category.label == category_label).all()
+
+    if not categories:
+        return None  # No categories found with the given label
+
+    # 2. Randomly select one of these categories
+    selected_category = random.choice(categories)
+
+    # 3. Find all scripts with the selected category_id, level, and inspection_status True
+    scripts = db.query(Scripts).filter(
+        Scripts.category_id == selected_category.category_id,
+        Scripts.level == level,
+        Scripts.inspection_status == True
+    ).all()
+
+    if not scripts:
+        return None  # No scripts found with the given category_id, level, and inspection_status True
+
+    # 4. Randomly select and return one of these scripts
+    return random.choice(scripts)
+
+
+def get_shortforms_by_scripts_id(db: Session, scripts_id: int):
+    return db.query(Shortform).filter(Shortform.scripts_id == scripts_id).all()
+
+
+def get_questions_by_scripts_id(db: Session, scripts_id: int):
+    return db.query(Question).filter(Question.scripts_id == scripts_id).all()
+
+
+def get_comments_by_q_id(db: Session, q_id: int):
+    return db.query(Comment).filter(Comment.q_id == q_id).all()
 
 
 def get_questions(db: Session):
@@ -545,3 +609,20 @@ def get_case_scripts(db: Session):
 
 def get_shortform(db: Session):
     return db.query(Shortform).all()
+
+
+def get_profile_image_url(user_id: int, db: Session) -> str:
+    result = db.query(Profile_images.image_url). \
+        join(User, User.profile_image == Profile_images.image_id). \
+        filter(User.user_id == user_id).first()
+    return result.image_url if result else None
+
+
+def get_random_quizzes(db: Session, limit: int = 10):
+    quizzes = db.query(models.Enrollment_quiz).all()
+    return random.sample(quizzes, limit)
+
+
+def get_correct_answers(db: Session, quiz_ids: List[int]):
+    quizzes = db.query(models.Enrollment_quiz).filter(models.Enrollment_quiz.enrollment_quiz_id.in_(quiz_ids)).all()
+    return {quiz.enrollment_quiz_id: quiz.correct for quiz in quizzes}

@@ -109,7 +109,7 @@
     <div class="header">
         <img src="../static/logo.png" alt="DayW Logo">
         <div class="icons">
-            <img src="path/to/user-icon.png" alt="User Icon">
+            <img src="../static/marimo.png" alt="User Icon">
         </div>
     </div>
     <div class="container">
@@ -152,7 +152,7 @@
 
         async function fetchContents(inspection_status) {
             try {
-                const url = `http://127.0.0.1:8000/read_content_list_status/?inspection_status=${inspection_status}`;
+                const url = `/read_content_list_status/?inspection_status=${inspection_status}`;
                 console.log(`Fetching contents from: ${url}`);
                 const response = await fetch(url);
                 if (!response.ok) {
