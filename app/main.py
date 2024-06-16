@@ -13,7 +13,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.core.problem.chatbot import router as chat_router
 from starlette.responses import RedirectResponse, JSONResponse
 
-from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files, download_file_from_ftp
+from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files, download_file_from_ftp, video_from_ftp
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
@@ -779,37 +779,20 @@ async def get_stream_video(request: Request, scripts_id: int, db: Session = Depe
         raise HTTPException(status_code=404, detail="Script not found")
 
     shortform_data = crud.get_shortform_by_scripts_id(db, scripts_id)
-
-    video_url = None
     remote_file_path = ""
 
     if shortform_data.form_url:
         remote_video_url = shortform_data.form_url
         remote_file_path = f"/video/{remote_video_url}"
-
     else:
         remote_video_url = "completed_video_1.mp4"
-        video_response = None
+        remote_file_path = None
 
-    try:
-        file_contents = read_binary_file_from_ftp(remote_file_path)
-
-        if file_contents:
-            video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
-            video_url = request.url_for("stream_video", video_path=remote_video_url)
-        else:
-            # raise HTTPException(status_code=500, detail="Failed to retrieve video")
-            video_url = None
-    except Exception as e:
-        # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
-        video_url = None
-
-    return {
-        "request": request,
-        "scripts_id": scripts_id,
-        "shortform_data": shortform_data,
-        "video_url": video_url  # 템플릿에 비디오 스트리밍 응답을 전달합니다.
-    }
+    video_stream = await video_from_ftp(remote_file_path)
+    if video_stream:
+        return StreamingResponse(video_stream, media_type='video/mp4')
+    else:
+        return HTTPException(status_code=404, detail="Video not found")
 
 
 @app.get("/read/scripts/random/")
@@ -870,6 +853,7 @@ async def read_comments(q_id: int, db: Session = Depends(get_db)):
 
 
 
+
 @app.get("/stream_video/{video_path}")
 async def stream_video(request: Request, video_path: str):
     remote_file_path = f"/video/{video_path}"
@@ -895,6 +879,7 @@ async def stream_video(request: Request, video_path: str):
                 yield chunk
 
     return StreamingResponse(iterfile(), media_type="video/mp4")
+
 
 @app.get("/get_all_ranking/")
 async def get_all_ranking(db: Session = Depends(get_db)):
