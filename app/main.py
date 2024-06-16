@@ -13,7 +13,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.core.problem.chatbot import router as chat_router
 from starlette.responses import RedirectResponse, JSONResponse
 
-from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files
+from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files, download_file_from_ftp
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
@@ -179,7 +179,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user_create=user)
 
 
-@app.get("/users/{user_id}/readuser", response_model=schemas.UserBase)
+@app.get("/users/{user_id}/read_user", response_model=schemas.UserBase)
 async def read_user(user_id: int, db: Session = Depends(get_db)):
     user = get_user(db, user_id)
     return user
@@ -882,6 +882,19 @@ async def stream_video(request: Request, video_path: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
 
+
+@app.get("/stream_mobile_video/{video_path}")
+async def stream_video(request: Request, video_path: str):
+    remote_file_path = f"/videos/{video_path}.mp4"
+    local_file_path = os.path.join("app", "core", "video", video_path)
+    download_file_from_ftp(remote_file_path, local_file_path)
+
+    async def iterfile():
+        with open(local_file_path, mode="rb") as file:
+            while chunk := file.read(1024 * 1024):  # 1MB 청크
+                yield chunk
+
+    return StreamingResponse(iterfile(), media_type="video/mp4")
 
 @app.get("/get_all_ranking/")
 async def get_all_ranking(db: Session = Depends(get_db)):
