@@ -1,4 +1,6 @@
 import io
+import json
+
 import uvicorn
 from fastapi import HTTPException, Form, Depends
 import os
@@ -18,10 +20,10 @@ from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
 from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
     update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name, \
-    get_user_by_email_and_name, get_user_by_nickname_and_name, get_profile_image_url
+    get_user_by_email_and_name, get_user_by_nickname_and_name, get_profile_image_url, get_user_for_password
 from app.core.db.models import Admin
 from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
-    AdminUpdate, AdminLogin, CreateContentRequest, ScriptsRead
+    AdminUpdate, AdminLogin, CreateContentRequest, ScriptsRead, PasswordChangeRequest
 from passlib.context import CryptContext
 from typing import List, Optional
 
@@ -102,6 +104,19 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 
+@app.put("/change-password/")
+def change_password(request: PasswordChangeRequest, db: Session = Depends(get_db)):
+    user = get_user_for_password(db, request.user_id, request.e_mail, request.name)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    hashed_password = pwd_context.hash(request.new_password)
+    user.hashed_password = hashed_password
+    db.commit()
+    db.refresh(user)
+
+    return {"msg": "Password updated successfully"}
+
 # 세션에서 현재 사용자를 가져오는 함수 정의
 async def get_current_user(request: Request):
     session = request.session
@@ -156,6 +171,7 @@ async def read_admins(skip: int = 0, limit: int = 10, level: int = None, db: Ses
         query = query.filter(models.Admin.qualification_level == level)
     admins = query.offset(skip).limit(limit).all()
     return admins
+
 
 @app.get("/admins_count/", response_model=int)
 async def read_admin_count(level: int = None, db: Session = Depends(get_db)):
@@ -883,7 +899,10 @@ async def read_questions(scripts_id: int, db: Session = Depends(get_db)):
     questions = crud.get_questions_by_scripts_id(db, scripts_id)
     if not questions:
         raise HTTPException(status_code=404, detail="Questions not found")
-    return questions
+
+    # JSON 응답을 UTF-8로 인코딩하여 반환
+    response_content = json.dumps(questions, ensure_ascii=False).encode('utf-8')
+    return JSONResponse(content=response_content, media_type='application/json')
 
 
 @app.get("/questions/{q_id}/comments")

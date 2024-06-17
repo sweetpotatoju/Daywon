@@ -16,6 +16,12 @@ class UserBase(BaseModel):
     profile_image: int
 
 
+class PasswordChangeRequest(BaseModel):
+    user_id: int
+    e_mail: str
+    name: str
+    new_password: str
+
 
 class UserCreate(UserBase):
     hashed_password: str
