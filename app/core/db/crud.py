@@ -226,7 +226,7 @@ def get_cotegory_name_by_category_id(db: Session, category_id: int):
     return all_db.content
 
 
-def create_category(db: Session, category_in: CategoryCreate):
+def create_categories(db: Session, category_in: CategoryCreate):
     db_obj = Category(
         content=category_in.content,
         label=category_in.label,
@@ -379,6 +379,10 @@ def get_admin_count(db: Session):
     return db.query(models.Admin).count()
 
 
+def get_admins_mobile(db: Session):
+    return db.query(models.Admin).filter(models.Admin.qualification_level != 3).all()
+
+
 # 가장 최근에 추가된 shortform 데이터를 읽어오는 함수
 def get_latest_shortform(db):
     return db.query(Shortform).order_by(desc(Shortform.form_id)).first()
@@ -459,7 +463,7 @@ def create_user_history(db: Session, user_id: int, script_id: int, T_F: bool):
     return user_history
 
 
-def update_user_history(db: Session, user_id: int, script_id: int):
+async def update_user_history(db: Session, user_id: int, script_id: int):
     user_history = db.query(History).filter(History.user_id == user_id, History.script_id == script_id).first()
     if user_history:
         user_history.time += 1
@@ -534,7 +538,7 @@ def get_created_problem_count(db: Session):
     return count
 
 
-# 검토 완료된 문제 개수
+# 검토 완료된 문제 개수4
 def get_true_questions_count(db: Session):
     count = db.query(func.count(Scripts.scripts_id)).filter(Scripts.inspection_status == True).scalar()
     return count

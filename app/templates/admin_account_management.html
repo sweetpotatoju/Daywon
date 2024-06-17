@@ -278,7 +278,7 @@
 
             .filter-container label {
                 margin-right: 5px;
-                font-size: 14px;
+                font-size: 14px
             }
 
             .filter-container select {
@@ -321,7 +321,7 @@
     <div class="header">
         <img src="../static/logo.png" alt="DayW Logo">
         <div class="icons">
-            <img src="path/to/user-icon.png" alt="User Icon">
+            <img src="../static/marimo.png" alt="User Icon">
         </div>
     </div>
     <h1>계정 관리</h1>
@@ -424,16 +424,11 @@
                     throw new Error("API 응답이 배열이 아닙니다.");
                 }
 
-                // 클라이언트 측 필터링
-                if (level !== null && level !== 'all') {
-                    return data.filter(account => account.qualification_level === parseInt(level));
-                }
-
                 return data;
             }
 
             async function fetchAdminCount(level = null) {
-                let url = `/admin_count`;
+                let url = `/admins_count`;
                 if (level !== null && level !== 'all') {
                     url += `?level=${level}`;
                 }
@@ -474,7 +469,7 @@
                             console.log(`Result: "${result}"`); // 응답 값 확인
 
                             const cleanedResult = result.replace(/^"|"$/g, '').trim();
-                            console.log(`Result23: "${cleanedResult}"`); // 응답 값 확인
+                            console.log(`Result: "${cleanedResult}"`); // 응답 값 확인
                             if (cleanedResult === "success") {
                                 showSuccessPopup("업데이트가 성공적으로 완료되었습니다.");
                             } else {
@@ -489,7 +484,6 @@
 
                             const cleanedResult = result.replace(/^"|"$/g, '').trim();
                             console.log(`Result: "${cleanedResult}"`); // 응답 값 확인
-                            // 응답을 정리하고 비교
                             if (cleanedResult === "success") {
                                 console.log("Account level updated successfully");
                                 showSuccessPopup("업데이트가 성공적으로 완료되었습니다.");
@@ -541,9 +535,11 @@
                 for (let i = 1; i <= totalPages; i++) {
                     const button = document.createElement('button');
                     button.textContent = i;
-                    button.classList.add(i === currentPage ? 'active' : '');
+                    if (i === currentPage) {
+                        button.classList.add('active');
+                    }
                     button.addEventListener('click', () => {
-                        renderAccounts(levelFilter.value, i); // 페이지 클릭 시 레벨 필터 적용
+                        renderAccounts(levelFilter.value, i);
                     });
                     paginationContainer.appendChild(button);
                 }
@@ -555,27 +551,33 @@
 
             addAccountSpan.onclick = function() {
                 addAccountModal.style.display = "none";
+                renderAccounts(levelFilter.value);
             }
 
             checkPasswordSpan.onclick = function() {
                 checkPasswordModal.style.display = "none";
-                document.getElementById('adminPassword').value = ''; // 입력값 초기화
+                document.getElementById('adminPassword').value = '';
+                renderAccounts(levelFilter.value);
             }
 
             userPasswordSpan.onclick = function() {
                 userPasswordModal.style.display = "none";
+                renderAccounts(levelFilter.value);
             }
 
             window.onclick = function(event) {
                 if (event.target == addAccountModal) {
                     addAccountModal.style.display = "none";
+                    renderAccounts(levelFilter.value);
                 }
                 if (event.target == checkPasswordModal) {
                     checkPasswordModal.style.display = "none";
-                    document.getElementById('adminPassword').value = ''; // 입력값 초기화
+                    document.getElementById('adminPassword').value = '';
+                    renderAccounts(levelFilter.value);
                 }
                 if (event.target == userPasswordModal) {
                     userPasswordModal.style.display = "none";
+                    renderAccounts(levelFilter.value);
                 }
             }
 
@@ -589,12 +591,12 @@
                 console.log(result); // 디버깅용 로그
                 const cleanedResult = result.replace(/^"|"$/g, '').trim();
                 if (cleanedResult === "success") {
-                    await renderAccounts();
+                    await renderAccounts(levelFilter.value);
                     addAccountModal.style.display = "none";
                     showSuccessPopup("계정 생성이 완료되었습니다.");
-                    document.getElementById('addAccountForm').reset(); // 입력값 초기화
+                    document.getElementById('addAccountForm').reset();
                 } else {
-                    showSuccessPopup("계정 생성에 실패했습니다."); // 실패 팝업 표시
+                    showSuccessPopup("계정 생성에 실패했습니다.");
                     console.error("Failed to create account");
                 }
             });
@@ -609,9 +611,9 @@
                         body: JSON.stringify(account)
                     });
                     if (response.ok) {
-                        const result = await response.text();  // "success" 문자열 받기
-                        console.log("Create result:", result); // 디버깅용 로그
-                        return result.trim(); // 응답 문자열 정리
+                        const result = await response.text();
+                        console.log("Create result:", result);
+                        return result.trim();
                     } else {
                         console.error("Create failed with status:", response.status);
                         return "error";
@@ -632,8 +634,8 @@
                         body: JSON.stringify({ password, adminId })
                     });
                     if (response.ok) {
-                        const result = await response.json();  // 비밀번호 결과 받기
-                        console.log("Check password result:", result); // 디버깅용 로그
+                        const result = await response.json();
+                        console.log("Check password result:", result);
                         return result;
                     } else {
                         console.error("Check password failed with status:", response.status);
@@ -649,7 +651,7 @@
                 event.preventDefault();
                 const password = document.getElementById('adminPassword').value;
                 const result = await checkAdminPassword(password, currentAdminId);
-                document.getElementById('adminPassword').value = ''; // 비밀번호 확인 후 초기화
+                document.getElementById('adminPassword').value = '';
                 if (result && result.password) {
                     checkPasswordModal.style.display = "none";
                     document.getElementById('userPasswordDisplay').textContent = `비밀번호: ${result.password}`;
@@ -660,10 +662,11 @@
             });
 
             function showSuccessPopup(message) {
-                successMessage.textContent = message; // 팝업 메시지 설정
+                successMessage.textContent = message;
                 successPopup.style.display = "block";
                 setTimeout(() => {
                     successPopup.style.display = "none";
+                    renderAccounts(levelFilter.value);
                 }, 3000);
             }
 
@@ -671,6 +674,7 @@
 
             function closeSuccessPopup() {
                 successPopup.style.display = "none";
+                renderAccounts(levelFilter.value);
             }
 
             renderAccounts();

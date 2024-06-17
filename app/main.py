@@ -69,7 +69,7 @@ app.add_middleware(
 
 
 # Dependency(DB 접근 함수)
-def get_db():
+async def get_db():
     db = SessionLocal()
     try:
         yield db
@@ -82,6 +82,24 @@ class Message(BaseModel):
 
 
 app.include_router(chat_router, prefix="/api")
+
+
+# 전역 예외 핸들러
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"status": "error", "detail": exc.detail},
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    # 여기에 로그를 남기거나 추가 처리를 할 수 있습니다.
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "detail": "An unexpected error occurred"},
+    )
 
 
 # 세션에서 현재 사용자를 가져오는 함수 정의
@@ -125,10 +143,27 @@ async def read_content_list_root(request: Request):
     return templates.TemplateResponse("content_list.html", {"request": request})
 
 
-@app.get("/read_admins_list/", response_model=List[schemas.Admin])
-async def read_admins(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    admins = crud.get_admins(db, skip=skip, limit=limit)
+@app.get("/read_admins_list_mobile/", response_model=List[schemas.Admin])
+async def read_admins_mobile(db: Session = Depends(get_db)):
+    admins = crud.get_admins_mobile(db)
     return admins
+
+
+@app.get("/read_admins_list/", response_model=List[schemas.Admin])
+async def read_admins(skip: int = 0, limit: int = 10, level: int = None, db: Session = Depends(get_db)):
+    query = db.query(models.Admin).filter(models.Admin.qualification_level != 3)
+    if level is not None:
+        query = query.filter(models.Admin.qualification_level == level)
+    admins = query.offset(skip).limit(limit).all()
+    return admins
+
+@app.get("/admins_count/", response_model=int)
+async def read_admin_count(level: int = None, db: Session = Depends(get_db)):
+    query = db.query(models.Admin).filter(models.Admin.qualification_level != 3)
+    if level is not None:
+        query = query.filter(models.Admin.qualification_level == level)
+    count = query.count()
+    return count
 
 
 @app.post("/create_admin/")
@@ -147,12 +182,6 @@ async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate
     if not db_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     return "success"  # 성공 시 "success" 문자열 반환
-
-
-@app.get("/admins_count/", response_model=int)
-async def read_admin_count(db: Session = Depends(get_db)):
-    count = crud.get_admin_count(db)
-    return count
 
 
 @app.post("/check_admin_password/")
@@ -179,7 +208,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user_create=user)
 
 
-@app.get("/users/{user_id}/read_user", response_model=schemas.UserBase)
+@app.get("/users/{user_id}/read_user", response_model=schemas.UserRead)
 async def read_user(user_id: int, db: Session = Depends(get_db)):
     user = get_user(db, user_id)
     return user
@@ -307,7 +336,7 @@ async def get_user__history(user_id: int, T_F: bool, db: Session = Depends(get_d
 
 @app.post("/category/", response_model=schemas.Category)
 async def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
-    return crud.create_category(db, category)
+    return crud.create_categories(db, category)
 
 
 #################################################
@@ -682,7 +711,10 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
                       db: Session = Depends(get_db)):
     admin = crud.get_active_admin_by_admin_name(db, admin_name)
     if not admin or admin.password != password:
-        return {"fail"}
+        # 수정된 부분 시작
+        response = RedirectResponse(url="/login?error=로그인을 실패했습니다", status_code=303)
+        return response
+        # 수정된 부분 끝
 
     session = request.session
     session["user"] = {
@@ -851,8 +883,6 @@ async def read_comments(q_id: int, db: Session = Depends(get_db)):
         media_type="application/json",
         headers={"Content-Type": "application/json; charset=utf-8"}
     )
-
-
 
 
 @app.get("/stream_video/{video_path}")

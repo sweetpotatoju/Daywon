@@ -9,24 +9,28 @@ from app.core.FTP_SERVER import setting
 
 app = FastAPI()
 
-def connect_to_ftp(server, port, username, password):
+
+async def connect_to_ftp(server, port, username, password):
     ftp = ftplib.FTP()
     ftp.connect(server, port)
     ftp.login(user=username, passwd=password)
     return ftp
 
-def disconnect_from_ftp(ftp):
+
+async def disconnect_from_ftp(ftp):
     ftp.quit()
 
+
 @contextmanager
-def get_ftp_connection():
+async def get_ftp_connection():
     ftp = connect_to_ftp(setting.FTP_SERVER, setting.FTP_PORT, setting.FTP_USERNAME, setting.FTP_PASSWORD)
     try:
         yield ftp
     finally:
         disconnect_from_ftp(ftp)
 
-def list_files():
+
+async def list_files():
     try:
         with get_ftp_connection() as ftp:
             files = ftp.nlst()
@@ -34,7 +38,8 @@ def list_files():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def upload_file_to_ftp(local_file_path, remote_directory):
+
+async def upload_file_to_ftp(local_file_path, remote_directory):
     try:
         with get_ftp_connection() as ftp:
             ftp.cwd(remote_directory)
@@ -48,8 +53,10 @@ def upload_file_to_ftp(local_file_path, remote_directory):
     except Exception as e:
         print(f"Unexpected error: {e}")
 
+
 async def video_from_ftp(filename):
-    async with aioftp.Client.context(host=setting.FTP_SERVER, port=setting.FTP_PORT, user=setting.FTP_USERNAME, password=setting.FTP_PASSWORD) as client:
+    async with aioftp.Client.context(host=setting.FTP_SERVER, port=setting.FTP_PORT, user=setting.FTP_USERNAME,
+                                     password=setting.FTP_PASSWORD) as client:
         async with client.download_stream(filename) as stream:
             while True:
                 block = await stream.read(1024)  # Read in chunks of 1024 bytes
@@ -57,12 +64,8 @@ async def video_from_ftp(filename):
                     break
                 yield block
 
-@app.get("/get_stream_video/{remote_file_path}")
-async def get_stream_video(remote_file_path: str):
-    video_stream = video_from_ftp(remote_file_path)
-    return StreamingResponse(video_stream, media_type="video/mp4")
 
-def read_file_from_ftp(remote_directory):
+async def read_file_from_ftp(remote_directory):
     try:
         with get_ftp_connection() as ftp:
             file_contents = []
@@ -75,7 +78,8 @@ def read_file_from_ftp(remote_directory):
     except ftplib.all_errors as e:
         print(f"FTP error: {e}")
 
-def read_binary_file_from_ftp(remote_file_path):
+
+async def read_binary_file_from_ftp(remote_file_path):
     try:
         with get_ftp_connection() as ftp:
             file_contents = bytearray()
@@ -89,7 +93,8 @@ def read_binary_file_from_ftp(remote_file_path):
         print(f"FTP error: {e}")
         return None
 
-def download_file_from_ftp(remote_file_path, local_file_path):
+
+async def download_file_from_ftp(remote_file_path, local_file_path):
     try:
         with get_ftp_connection() as ftp:
             with open(local_file_path, 'wb') as local_file:
