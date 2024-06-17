@@ -776,8 +776,7 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
             # raise HTTPException(status_code=500, detail="Failed to retrieve video")
             video_url = None
     except Exception as e:
-        # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
-        video_url = None
+        raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
 
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
