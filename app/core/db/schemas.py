@@ -17,7 +17,6 @@ class UserBase(BaseModel):
 
 
 class PasswordChangeRequest(BaseModel):
-    user_id: int
     e_mail: str
     name: str
     new_password: str

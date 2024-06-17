@@ -35,8 +35,10 @@ def create_user(db: Session, user_create: schemas.UserCreate):
 def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.user_id == user_id).first()
 
-def get_user_for_password(db: Session, user_id: int, e_mail: str, name: str):
-    return db.query(User).filter(User.user_id == user_id, User.e_mail == e_mail, User.name == name).first()
+
+def get_user_for_password(db: Session, e_mail: str, name: str):
+    return db.query(User).filter(User.e_mail == e_mail, User.name == name).first()
+
 
 def get_user_by_email(db: Session, e_mail: str) -> object:
     return db.query(models.User).filter(models.User.e_mail == e_mail).first()

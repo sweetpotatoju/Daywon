@@ -1,9 +1,9 @@
 import ftplib
 import os
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
+import asyncio
 import aioftp
 from fastapi import HTTPException, FastAPI
-from fastapi.responses import StreamingResponse
 
 from app.core.FTP_SERVER import setting
 
@@ -11,29 +11,32 @@ app = FastAPI()
 
 
 async def connect_to_ftp(server, port, username, password):
+    loop = asyncio.get_event_loop()
     ftp = ftplib.FTP()
-    ftp.connect(server, port)
-    ftp.login(user=username, passwd=password)
+    await loop.run_in_executor(None, ftp.connect, server, port)
+    await loop.run_in_executor(None, ftp.login, username, password)
     return ftp
 
 
 async def disconnect_from_ftp(ftp):
-    ftp.quit()
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, ftp.quit)
 
 
-@contextmanager
+@asynccontextmanager
 async def get_ftp_connection():
-    ftp = connect_to_ftp(setting.FTP_SERVER, setting.FTP_PORT, setting.FTP_USERNAME, setting.FTP_PASSWORD)
+    ftp = await connect_to_ftp(setting.FTP_SERVER, setting.FTP_PORT, setting.FTP_USERNAME, setting.FTP_PASSWORD)
     try:
         yield ftp
     finally:
-        disconnect_from_ftp(ftp)
+        await disconnect_from_ftp(ftp)
 
 
 async def list_files():
     try:
-        with get_ftp_connection() as ftp:
-            files = ftp.nlst()
+        async with get_ftp_connection() as ftp:
+            loop = asyncio.get_event_loop()
+            files = await loop.run_in_executor(None, ftp.nlst)
         return files
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -41,11 +44,12 @@ async def list_files():
 
 async def upload_file_to_ftp(local_file_path, remote_directory):
     try:
-        with get_ftp_connection() as ftp:
-            ftp.cwd(remote_directory)
-            ftp.retrlines('LIST')
+        async with get_ftp_connection() as ftp:
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, ftp.cwd, remote_directory)
+            await loop.run_in_executor(None, ftp.retrlines, 'LIST')
             with open(local_file_path, 'rb') as file:
-                ftp.storbinary(f'STOR {os.path.basename(local_file_path)}', file)
+                await loop.run_in_executor(None, ftp.storbinary, f'STOR {os.path.basename(local_file_path)}', file)
         os.remove(local_file_path)
         print(f"File {local_file_path} uploaded and removed locally.")
     except PermissionError as e:
@@ -67,9 +71,10 @@ async def video_from_ftp(filename):
 
 async def read_file_from_ftp(remote_directory):
     try:
-        with get_ftp_connection() as ftp:
+        async with get_ftp_connection() as ftp:
             file_contents = []
-            ftp.retrlines(f'RETR {remote_directory}', file_contents.append)
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, ftp.retrlines, f'RETR {remote_directory}', file_contents.append)
             return '\n'.join(file_contents)
     except ftplib.error_perm as e:
         print(f"Permission error: {e}")
@@ -81,9 +86,10 @@ async def read_file_from_ftp(remote_directory):
 
 async def read_binary_file_from_ftp(remote_file_path):
     try:
-        with get_ftp_connection() as ftp:
+        async with get_ftp_connection() as ftp:
             file_contents = bytearray()
-            ftp.retrbinary(f'RETR {remote_file_path}', file_contents.extend)
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, ftp.retrbinary, f'RETR {remote_file_path}', file_contents.extend)
             return bytes(file_contents)
     except ftplib.error_perm as e:
         print(f"Permission error: {e}")
@@ -96,9 +102,10 @@ async def read_binary_file_from_ftp(remote_file_path):
 
 async def download_file_from_ftp(remote_file_path, local_file_path):
     try:
-        with get_ftp_connection() as ftp:
+        async with get_ftp_connection() as ftp:
+            loop = asyncio.get_event_loop()
             with open(local_file_path, 'wb') as local_file:
-                ftp.retrbinary(f'RETR {remote_file_path}', local_file.write)
+                await loop.run_in_executor(None, ftp.retrbinary, f'RETR {remote_file_path}', local_file.write)
         print(f"File {remote_file_path} downloaded to {local_file_path}")
     except ftplib.error_perm as e:
         print(f"Permission error: {e}")

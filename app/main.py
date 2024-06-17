@@ -1,51 +1,42 @@
 import io
 import json
+import os
+import re
+import asyncio
+import ftplib
 
 import uvicorn
-from fastapi import HTTPException, Form, Depends
-import os
-
-from pydantic import BaseModel
+from fastapi import HTTPException, Form, Depends, FastAPI, Request
+from fastapi.responses import StreamingResponse, JSONResponse, HTMLResponse, RedirectResponse
+from fastapi.security import APIKeyCookie
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-import re
 
-from starlette.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from passlib.context import CryptContext
+from pydantic import BaseModel
+from typing import List, Optional
 
+from starlette.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
+
+from app.core.FTP_SERVER import setting
+from app.core.db.crud import get_category_by_content, get_profile_image_url, update_question, update_comment, \
+    get_user_for_password, get_user, get_user_by_email_and_name, get_user_by_nickname_and_name, get_user_by_email, \
+    update_user, update_user_points
+from app.core.db.schemas import ScriptsRead, CreateContentRequest, ModifyScriptRequest, PasswordChangeRequest, \
+    UserCreate, Login, UserUpdate, PointsUpdate
 from app.core.problem.chatbot import router as chat_router
-from starlette.responses import RedirectResponse, JSONResponse
-
 from app.core.FTP_SERVER.ftp_util import read_binary_file_from_ftp, list_files, download_file_from_ftp, video_from_ftp
 from app.core.db import models, schemas, crud
 from app.core.db.base import SessionLocal, engine
-from app.core.db.crud import get_user_by_email, update_user, update_user_points, get_user, update_script, \
-    update_case_script, update_question, update_comment, get_category_by_content, get_admin_by_admin_name, \
-    get_user_by_email_and_name, get_user_by_nickname_and_name, get_profile_image_url, get_user_for_password
-from app.core.db.models import Admin
-from app.core.db.schemas import UserCreate, UserBase, Login, UserUpdate, PointsUpdate, ModifyScriptRequest, AdminCreate, \
-    AdminUpdate, AdminLogin, CreateContentRequest, ScriptsRead, PasswordChangeRequest
-from passlib.context import CryptContext
-from typing import List, Optional
-
-from app.core.problem.createProblem import create_problem, combine_problem_parts, merge_explanations, \
-    modify_problem_comment
+from app.core.video.createVideo import VideoCreator, ftp_directory
 from app.core.prompt_image.createImage import generate_images
 from app.core.prompt_image.createPrompt import create_prompt, create_case_prompt, modify_prompt, modify_case_prompt
-from app.core.video.createVideo import VideoCreator, ftp_directory
-from fastapi import FastAPI, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-# from starlette.templating import Jinja2Templates
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from passlib.context import CryptContext
-from fastapi.security import APIKeyCookie
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi.responses import StreamingResponse
-from fastapi import FastAPI, Response
-from fastapi.responses import StreamingResponse
-from ftplib import FTP, error_perm, error_temp, all_errors
-from app.core.problem.chatbot import *
+from app.core.problem.createProblem import create_problem, combine_problem_parts, merge_explanations, \
+    modify_problem_comment
 
 # DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
@@ -106,7 +97,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 @app.put("/change-password/")
 def change_password(request: PasswordChangeRequest, db: Session = Depends(get_db)):
-    user = get_user_for_password(db, request.user_id, request.e_mail, request.name)
+    user = get_user_for_password(db, request.e_mail, request.name)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -116,6 +107,7 @@ def change_password(request: PasswordChangeRequest, db: Session = Depends(get_db
     db.refresh(user)
 
     return {"msg": "Password updated successfully"}
+
 
 # 세션에서 현재 사용자를 가져오는 함수 정의
 async def get_current_user(request: Request):
@@ -196,25 +188,6 @@ async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate
     if not db_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     return "success"  # 성공 시 "success" 문자열 반환
-
-
-# exception_handler
-# 전역 예외 핸들러
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"status": "error", "detail": exc.detail},
-    )
-
-
-@app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
-    # 여기에 로그를 남기거나 추가 처리를 할 수 있습니다.
-    return JSONResponse(
-        status_code=500,
-        content={"status": "error", "detail": "An unexpected error occurred"},
-    )
 
 
 @app.get("/admins_count/", response_model=int)
@@ -378,8 +351,6 @@ async def create_category(category: schemas.CategoryCreate, db: Session = Depend
     return crud.create_categories(db, category)
 
 
-#################################################
-
 @app.get("/read_content_list_status/", response_model=List[ScriptsRead])
 async def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
     print(f"Fetching scripts with inspection_status={inspection_status}")
@@ -413,14 +384,6 @@ async def read_scripts(inspection_status: bool, db: Session = Depends(get_db)):
 
     print(f"Result: {result}")
     return result
-
-
-@app.get("/scripts_read/{scripts_id}")
-async def read_script(scripts_id: int, db: Session = Depends(get_db)):
-    db_script = crud.get_script(db, scripts_id=scripts_id)
-    if db_script is None:
-        raise HTTPException(status_code=404, detail="Script not found")
-    return db_script
 
 
 @app.get("/scripts_read/{scripts_id}")
@@ -779,22 +742,6 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
     return {"status": "success"}  # 성공 시 명확한 메시지 반환
 
 
-@app.post("/admins/login_mobile")
-async def admin_login(request: Request, admin_name: str = Form(...), password: str = Form(...),
-                      db: Session = Depends(get_db)):
-    admin = crud.get_active_admin_by_admin_name(db, admin_name)
-    if not admin or admin.password != password:
-        return {"status": "fail"}
-
-    session = request.session
-    session["user"] = {
-        "admin_id": admin.admin_id,
-        "admin_name": admin.admin_name,
-        "qualification_level": admin.qualification_level
-    }
-    return {"status": "success"}  # 성공 시 명확한 메시지 반환
-
-
 @app.get("/nextpage/{content_id}", response_class=HTMLResponse)
 async def content_view(request: Request, content_id: int, db: Session = Depends(get_db)):
     script_data = crud.get_script(db, content_id)
@@ -810,15 +757,10 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     file_contents = ""
 
     try:
-
         if shortform_data.form_url:
             remote_video_url = shortform_data.form_url
             remote_file_path = f"/video/{remote_video_url}"
-            file_contents = read_binary_file_from_ftp(remote_file_path)
-
-        else:
-            remote_video_url = "completed_video_1.mp4"
-            video_response = None
+            file_contents = await read_binary_file_from_ftp(remote_file_path)
 
         if file_contents:
             video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
@@ -929,7 +871,7 @@ async def read_comments(q_id: int, db: Session = Depends(get_db)):
 async def stream_video(request: Request, video_path: str):
     remote_file_path = f"/video/{video_path}"
     try:
-        file_contents = read_binary_file_from_ftp(remote_file_path)
+        file_contents = await read_binary_file_from_ftp(remote_file_path)
         if file_contents:
             return StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
         else:
@@ -942,7 +884,7 @@ async def stream_video(request: Request, video_path: str):
 async def stream_video(request: Request, video_path: str):
     remote_file_path = f"/videos/{video_path}.mp4"
     local_file_path = os.path.join("app", "core", "video", video_path)
-    download_file_from_ftp(remote_file_path, local_file_path)
+    await download_file_from_ftp(remote_file_path, local_file_path)
 
     async def iterfile():
         with open(local_file_path, mode="rb") as file:
@@ -1028,6 +970,4 @@ async def submit_answers(user_answers: schemas.UserAnswers, db: Session = Depend
 
 
 if __name__ == "__main__":
-    import uvicorn
-
     uvicorn.run(app, host="127.0.0.1", port=30001)
