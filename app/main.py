@@ -133,12 +133,10 @@ async def read_admins(skip: int = 0, limit: int = 10, db: Session = Depends(get_
 
 @app.post("/create_admin/")
 async def create_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)):
-    try:
-        crud.create_admin(db, admin)
-        return "success"
-    except Exception as e:
-        # 예외가 발생하면 에러 메시지를 반환
-        return "error"
+    created_admin = crud.create_admin(db, admin)
+    if not created_admin:
+        raise HTTPException(status_code=404, detail="Admin not create")
+    return "success"
 
 
 @app.put("/update_admins/{admin_id}")
@@ -147,6 +145,25 @@ async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate
     if not db_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     return "success"  # 성공 시 "success" 문자열 반환
+
+
+# exception_handler
+# 전역 예외 핸들러
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"status": "error", "detail": exc.detail},
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    # 여기에 로그를 남기거나 추가 처리를 할 수 있습니다.
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "detail": "An unexpected error occurred"},
+    )
 
 
 @app.get("/admins_count/", response_model=int)
@@ -738,18 +755,18 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     comment_data = crud.get_comment_by_script_id(db, content_id)
 
     video_url = None
-    remote_file_path = ""
-
-    if shortform_data.form_url:
-        remote_video_url = shortform_data.form_url
-        remote_file_path = f"/video/{remote_video_url}"
-
-    else:
-        remote_video_url = "completed_video_1.mp4"
-        video_response = None
+    file_contents = ""
 
     try:
-        file_contents = read_binary_file_from_ftp(remote_file_path)
+
+        if shortform_data.form_url:
+            remote_video_url = shortform_data.form_url
+            remote_file_path = f"/video/{remote_video_url}"
+            file_contents = read_binary_file_from_ftp(remote_file_path)
+
+        else:
+            remote_video_url = "completed_video_1.mp4"
+            video_response = None
 
         if file_contents:
             video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
@@ -758,8 +775,8 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
             # raise HTTPException(status_code=500, detail="Failed to retrieve video")
             video_url = None
     except Exception as e:
-        # raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
-        video_url = None
+        print("error:", e)
+        video_url = "FTP error"
 
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
@@ -851,8 +868,6 @@ async def read_comments(q_id: int, db: Session = Depends(get_db)):
         media_type="application/json",
         headers={"Content-Type": "application/json; charset=utf-8"}
     )
-
-
 
 
 @app.get("/stream_video/{video_path}")

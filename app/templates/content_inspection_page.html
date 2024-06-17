@@ -460,12 +460,16 @@
                 </div>
                 <div id="shortform-content">
                     {% if video_url %}
-                        <div id="video-container">
-                            <video controls width="360" height="640">
-                            <source src="{{ video_url }}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
+                        {% if video_url == "FTP error" %}
+                            <p>FTP 서버 에러</p>
+                        {% else %}
+                            <div id="video-container">
+                                <video controls width="360" height="640">
+                                    <source src="{{ video_url }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        {% endif %}
                     {% else %}
                         <p>영상을 불러오지 못했습니다.</p>
                     {% endif %}
