@@ -133,12 +133,11 @@ async def read_admins(skip: int = 0, limit: int = 10, db: Session = Depends(get_
 
 @app.post("/create_admin/")
 async def create_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)):
-    try:
-        crud.create_admin(db, admin)
-        return "success"
-    except Exception as e:
-        # 예외가 발생하면 에러 메시지를 반환
-        return "error"
+    created_admin = crud.create_admin(db, admin)
+    if not created_admin:
+        raise HTTPException(status_code=404, detail="Admin not create")
+    return "success"
+
 
 
 @app.put("/update_admins/{admin_id}")
@@ -147,6 +146,25 @@ async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate
     if not db_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     return "success"  # 성공 시 "success" 문자열 반환
+
+
+# exception_handler
+# 전역 예외 핸들러
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"status": "error", "detail": exc.detail},
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    # 여기에 로그를 남기거나 추가 처리를 할 수 있습니다.
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "detail": "An unexpected error occurred"},
+    )
 
 
 @app.get("/admins_count/", response_model=int)
@@ -851,8 +869,6 @@ async def read_comments(q_id: int, db: Session = Depends(get_db)):
         media_type="application/json",
         headers={"Content-Type": "application/json; charset=utf-8"}
     )
-
-
 
 
 @app.get("/stream_video/{video_path}")
