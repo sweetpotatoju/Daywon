@@ -734,10 +734,8 @@ async def admin_login(request: Request, admin_name: str = Form(...), password: s
                       db: Session = Depends(get_db)):
     admin = crud.get_active_admin_by_admin_name(db, admin_name)
     if not admin or admin.password != password:
-        # 수정된 부분 시작
-        response = RedirectResponse(url="/login?error=로그인을 실패했습니다", status_code=303)
-        return response
-        # 수정된 부분 끝
+        # 로그인 실패 시 JSON 응답으로 오류 메시지 반환
+        return JSONResponse(content={"error": "로그인에 실패하였습니다"}, status_code=400)
 
     session = request.session
     session["user"] = {
