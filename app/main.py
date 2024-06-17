@@ -773,10 +773,11 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
             video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
             video_url = request.url_for("stream_video", video_path=remote_video_url)
         else:
-            # raise HTTPException(status_code=500, detail="Failed to retrieve video")
+            #raise HTTPException(status_code=500, detail="Failed to retrieve video")
             video_url = None
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error retrieving video from FTP server")
+        print("error:", e)
+        video_url = "FTP error"
 
     return templates.TemplateResponse("content_inspection_page.html", {
         "request": request,
