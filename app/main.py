@@ -139,7 +139,6 @@ async def create_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)
     return "success"
 
 
-
 @app.put("/update_admins/{admin_id}")
 async def update_admin_endpoint(admin_id: int, admin_update: schemas.AdminUpdate, db: Session = Depends(get_db)):
     db_admin = crud.update_admin(db, admin_id, admin_update)
@@ -756,24 +755,24 @@ async def content_view(request: Request, content_id: int, db: Session = Depends(
     comment_data = crud.get_comment_by_script_id(db, content_id)
 
     video_url = None
-    remote_file_path = ""
-
-    if shortform_data.form_url:
-        remote_video_url = shortform_data.form_url
-        remote_file_path = f"/video/{remote_video_url}"
-
-    else:
-        remote_video_url = "completed_video_1.mp4"
-        video_response = None
+    file_contents = ""
 
     try:
-        file_contents = read_binary_file_from_ftp(remote_file_path)
+
+        if shortform_data.form_url:
+            remote_video_url = shortform_data.form_url
+            remote_file_path = f"/video/{remote_video_url}"
+            file_contents = read_binary_file_from_ftp(remote_file_path)
+
+        else:
+            remote_video_url = "completed_video_1.mp4"
+            video_response = None
 
         if file_contents:
             video_response = StreamingResponse(io.BytesIO(file_contents), media_type="video/mp4")
             video_url = request.url_for("stream_video", video_path=remote_video_url)
         else:
-            #raise HTTPException(status_code=500, detail="Failed to retrieve video")
+            # raise HTTPException(status_code=500, detail="Failed to retrieve video")
             video_url = None
     except Exception as e:
         print("error:", e)
