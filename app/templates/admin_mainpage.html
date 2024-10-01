@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ECEFF1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: white;
+            width: 90%;
+            max-width: 1200px;
+            min-width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .logo {
+            height: 70px; /* 로고 크기를 15px로 조정 */
+        }
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            color: #37474F;
+        }
+        .account-info {
+            background-color: #1E88E5;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .account-info p {
+            margin: 10px 0;
+        }
+        .account-info .count {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 20px;
+            justify-content: center;
+            color: #37474F;
+        }
+        .blue-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #1E88E5;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .actions {
+            display: grid;
+            gap: 10px;
+            justify-items: center;
+        }
+        .actions button {
+            width: 100%;
+            max-width: 300px;
+            background-color: #1565C0;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .actions button:hover {
+            background-color: #0D47A1;
+        }
+        @media (min-width: 768px) {
+            .actions.one-button {
+                grid-template-columns: 1fr;
+            }
+            .actions.two-buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+            .actions.three-buttons {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img class="logo" src="../static/logo.png" alt="DayW Logo">
+            <div class="greeting" data-admin-level="{{ current_user_admin.qualification_level }}">
+                관리자 {{ current_user_admin.admin_name }}님, 안녕하세요!</div>
+        </div>
+        <div class="account-info">
+            <div class="count">
+                <p>생성된 문제 개수: {{data.created_problem}}</p>
+                <p>검토 완료된 문제 개수: {{data.true_questions_count}}</p>
+                <p>이용자 수: {{data.get_user_count}}</p>
+            </div>
+        </div>
+        <div class="section-title">
+            <span class="blue-dot"></span>관리자 기능
+        </div>
+        <div class="actions" id="actions">
+            <button id="create-question">문제 생성</button>
+            <button id="review-question">문제 검수</button>
+            <button id="manage-account">관리자 계정 관리</button>
+        </div>
+    </div>
+
+    <script>
+        // 사용자 권한 레벨 설정
+        var userLevel = document.querySelector('.greeting').getAttribute('data-admin-level');
+
+        // 버튼 요소 가져오기
+        var createQuestionBtn = document.getElementById('create-question');
+        var reviewQuestionBtn = document.getElementById('review-question');
+        var manageAccountBtn = document.getElementById('manage-account');
+        var actionsDiv = document.getElementById('actions');
+
+        // 사용자 권한에 따라 버튼 표시/숨기기
+        if (userLevel < 1) {
+            createQuestionBtn.style.display = 'none';
+        }
+        if (userLevel < 2) {
+            reviewQuestionBtn.style.display = 'none';
+        }
+        if (userLevel < 3) {
+            manageAccountBtn.style.display = 'none';
+        }
+
+        // 버튼 수에 따라 클래스 추가
+        var visibleButtons = actionsDiv.querySelectorAll('button:not([style*="display: none"])').length;
+        if (visibleButtons === 1) {
+            actionsDiv.classList.add('one-button');
+        } else if (visibleButtons === 2) {
+            actionsDiv.classList.add('two-buttons');
+        } else if (visibleButtons === 3) {
+            actionsDiv.classList.add('three-buttons');
+        }
+
+        // 디버깅을 위한 콘솔 출력
+        console.log('JavaScript 파일이 로드되었습니다.');
+
+        // 버튼 클릭 시 페이지 이동
+        createQuestionBtn.addEventListener('click', function() {
+            console.log('문제 생성 버튼 클릭됨');
+            window.location.href = '/read_create_content/';
+        });
+
+        reviewQuestionBtn.addEventListener('click', function() {
+            console.log('문제 검수 버튼 클릭됨');
+            window.location.href = '/read_content_list/';
+        });
+
+        manageAccountBtn.addEventListener('click', function() {
+            console.log('관리자 계정 관리 버튼 클릭됨');
+            window.location.href = '/admin_account_management_page/';
+        });
+
+    </script>
+</body>
+</html>
