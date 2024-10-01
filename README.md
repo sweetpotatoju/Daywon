@@ -34,7 +34,7 @@ Follow these steps to set up the project for development:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/DAYWON.git
+   git clone https://github.com/sweetpotatoju/Daywon.git
 
 
 ## Running the Tests
